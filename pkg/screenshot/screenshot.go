@@ -64,4 +64,3 @@ func ShotMineSweeper() (*image.RGBA, error) {
 	}
 	return img, nil
 }
-

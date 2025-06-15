@@ -12,6 +12,7 @@ const (
 	SW_SHOW          = 5
 	SW_SHOWMAXIMIZED = 3
 )
+
 var (
 	user32              = syscall.NewLazyDLL("user32.dll")
 	findWindow          = user32.NewProc("FindWindowW")
@@ -26,12 +27,12 @@ func FindMineWindow() (uintptr, error) {
 
 	classPtr, _ := syscall.UTF16PtrFromString(className)
 	windowPtr, _ := syscall.UTF16PtrFromString(windowName)
-	
+
 	hwnd, _, _ := findWindow.Call(
 		uintptr(unsafe.Pointer(classPtr)),
 		uintptr(unsafe.Pointer(windowPtr)),
 	)
-	
+
 	if hwnd == 0 {
 		return 0, fmt.Errorf("mine window not found")
 	}
@@ -50,7 +51,7 @@ func ActivateWindow(hwnd uintptr) error {
 func GetWindowBounds(hwnd uintptr) (image.Rectangle, error) {
 	var rect [4]int32
 	_, _, _ = getWindowRect.Call(hwnd, uintptr(unsafe.Pointer(&rect[0])))
-	
+
 	left, top := LogicalToPhysical(hwnd, int(rect[0]), int(rect[1]))
 	right, bottom := LogicalToPhysical(hwnd, int(rect[2]), int(rect[3]))
 	return image.Rect(left, top, right, bottom), nil

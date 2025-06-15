@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 	"image/color"
-	
+
 	"minego/pkg/clip"
 	"minego/pkg/identify"
 	"minego/pkg/imageproc"

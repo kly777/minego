@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	about = 8*256
+	about = 8 * 256
 )
 
 func SaveImg(img *image.Image, path string) error {
@@ -113,4 +113,3 @@ func FindBottommostColor(img image.Image, targetColor color.Color) *image.Point 
 
 	return nil
 }
-
