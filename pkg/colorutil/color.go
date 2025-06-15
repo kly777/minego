@@ -6,8 +6,12 @@ import (
 	"math"
 )
 
-func ColorsClose(c1, c2 color.Color, threshold int) bool {
-	return ColorsDist(c1, c2) < threshold
+func ColorsCloseN(c1, c2 color.Color, length int) bool {
+	return ColorsClose(c1, c2, length*256)
+}
+
+func ColorsClose(c1, c2 color.Color, length int) bool {
+	return ColorsDist(c1, c2) < length
 }
 
 func ColorsDist(c1, c2 color.Color) int {
