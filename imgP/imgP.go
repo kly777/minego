@@ -62,7 +62,7 @@ func DetectMineGrid(img image.Image) (int, int) {
 	fmt.Println("图像灰度处理完成")
 
 	// 二值化处理
-	binaryImg := binarize(gray, 50)
+	binaryImg := binarize(gray, 60)
 	if err := saveDebugImage(binaryImg, "debug_output.bmp"); err != nil {
 		fmt.Printf("保存调试图像失败: %v\n", err)
 	}
@@ -70,7 +70,7 @@ func DetectMineGrid(img image.Image) (int, int) {
 	// 检测水平和垂直线
 	horizontal := detectHorizontalLines(binaryImg, width, height)
 	vertical := detectVerticalLines(binaryImg, width, height)
-	fmt.Println("检测到水平线:", horizontal, "列线:", vertical)
+	// fmt.Println("检测到水平线:", horizontal, "列线:", vertical)
 	// 如果没有检测到线，返回0
 	if len(horizontal) == 0 || len(vertical) == 0 {
 		return 0, 0

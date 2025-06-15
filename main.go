@@ -25,6 +25,10 @@ func main() {
 	fmt.Println(img.Bounds())
 
 	rect := kit.FindSurroundingRect(img, BorderColor)
+	rect.Min.X -= 1
+	rect.Min.Y -= 1
+	rect.Max.X += 1
+	rect.Max.Y += 1
 	fmt.Println(rect)
 	img2, err := clip.ClipImage(img, rect)
 
@@ -32,7 +36,8 @@ func main() {
 		panic(err)
 	}
 	kit.SaveImg(&img2, "clip.png")
-	x, y := imgP.DetectMineGrid(img2)
-	size := identify.MineSize{Width: x, Height: y}
+	rows, cols := imgP.DetectMineGrid(img2)
+	fmt.Println(rows, cols)
+	size := identify.MineSize{Cols: cols, Rows: rows}
 	identify.RecognizeMinesweeper(img2, size)
 }

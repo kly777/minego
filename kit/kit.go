@@ -105,7 +105,7 @@ func FindBottommostColor(img image.Image, targetColor color.Color) *image.Point 
 	for y := bounds.Max.Y - 1; y >= bounds.Min.Y; y-- {
 		// 同一行内从左到右遍历
 		for x := bounds.Min.X; x < bounds.Max.X; x++ {
-			if ColorsClose(img.At(x, y), targetColor, about) {
+			if ColorsClose(img.At(x, y), targetColor, 6*256) {
 				return &image.Point{x, y}
 			}
 		}

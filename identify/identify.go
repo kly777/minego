@@ -31,10 +31,11 @@ var (
 	Number1Color = color.RGBA{64, 80, 189, 255}
 	Number2Color = color.RGBA{29, 103, 5, 255}
 	Number3Color = color.RGBA{175, 31, 34, 255}
+	EmptyColor   = color.RGBA{198, 209, 231, 255}
 )
 
 type MineSize struct {
-	Width, Height int
+	Cols, Rows int
 }
 
 type GridCell struct {
@@ -51,14 +52,15 @@ func RecognizeMinesweeper(gridImage image.Image, mineSize MineSize) [][]GridCell
 	width, height := bounds.Dx(), bounds.Dy()
 
 	// 校验 GridSize 合理性
-	if mineSize.Width <= 0 || mineSize.Height <= 0 {
+	if mineSize.Cols <= 0 || mineSize.Rows <= 0 {
 		panic("GridSize 的 Width 和 Height 必须大于 0")
 	}
 
 	// 正确计算行列数
-	rows := height / mineSize.Height
-	cols := width / mineSize.Width
-
+	rows := mineSize.Rows
+	cols := mineSize.Cols
+	cellWidth := width / cols
+	cellHeight := height / rows
 	result := make([][]GridCell, rows)
 	for i := range result {
 		result[i] = make([]GridCell, cols)
@@ -68,8 +70,10 @@ func RecognizeMinesweeper(gridImage image.Image, mineSize MineSize) [][]GridCell
 	for row := range rows {
 		for col := range cols {
 			// 基于 GridSize 的宽高分别计算中心点
-			x := col*mineSize.Width + mineSize.Width/2
-			y := row*mineSize.Height + mineSize.Height/2
+			x := col*cellWidth + cellWidth/2
+			y := row*cellHeight + cellHeight/2
+
+			fmt.Println(x, y)
 
 			// 边界检查
 			if y >= height || x >= width {
@@ -100,12 +104,15 @@ func RecognizeMinesweeper(gridImage image.Image, mineSize MineSize) [][]GridCell
 func recognizeColor(c color.Color) CellState {
 	// 实现具体颜色匹配逻辑
 	// 此处需要根据实际截图的颜色值进行调整
+
 	if kit.ColorsClose(c, Number1Color, 10*256) {
 		return Number1
 	} else if kit.ColorsClose(c, Number2Color, 10*256) {
 		return Number2
 	} else if kit.ColorsClose(c, Number3Color, 10*256) {
 		return Number3
+	} else if kit.ColorsClose(c, EmptyColor, 10*256) {
+		return Empty
 	}
 
 	return Unknown
