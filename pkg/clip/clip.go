@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"image"
 	"image/color"
-	"minego/kit"
+	"minego/pkg/kit"
 )
 
 // CropImage 裁剪图片（安全模式）

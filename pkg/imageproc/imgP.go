@@ -1,4 +1,4 @@
-package imgP
+package imageproc
 
 import (
 	"bufio"

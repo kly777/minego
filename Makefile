@@ -5,7 +5,7 @@ VERSION := $(shell git describe --tags 2>/dev/null || echo "v0.0.0")
 
 run:
 	@echo "Running..."
-	go run main.go
+	go run cmd/main.go
 
 
 

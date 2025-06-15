@@ -2,15 +2,13 @@ package main
 
 import (
 	"fmt"
-
 	"image/color"
-
-	"minego/clip"
-	"minego/identify"
-
-	"minego/imgP"
-	"minego/kit"
-	"minego/screenshot"
+	
+	"minego/pkg/clip"
+	"minego/pkg/identify"
+	"minego/pkg/imageproc"
+	"minego/pkg/kit"
+	"minego/pkg/screenshot"
 )
 
 var (
@@ -36,7 +34,7 @@ func main() {
 		panic(err)
 	}
 	kit.SaveImg(&img2, "clip.png")
-	rows, cols := imgP.DetectMineGrid(img2)
+	rows, cols := imageproc.DetectMineGrid(img2) // 更新函数调用
 	fmt.Println(rows, cols)
 	size := identify.MineSize{Cols: cols, Rows: rows}
 	identify.RecognizeMinesweeper(img2, size)
