@@ -8,12 +8,12 @@ func GetDPI(hwnd uintptr) (int, error) {
 	user32 := syscall.NewLazyDLL("user32.dll")
 	getDpiForWindow := user32.NewProc("GetDpiForWindow")
 	if getDpiForWindow.Find() != nil {
-		hdc, _, _ := syscall.Syscall(user32.NewProc("GetDC").Addr(), 1, hwnd, 0, 0)
+		hdc, _, _ := syscall.SyscallN(user32.NewProc("GetDC").Addr(), 1, hwnd, 0, 0)
 		if hdc == 0 {
 			return 96, nil
 		}
 		defer syscall.SyscallN(user32.NewProc("ReleaseDC").Addr(), 2, hwnd, hdc, 0)
-		logPixelsX, _, _ := syscall.Syscall(syscall.NewLazyDLL("gdi32.dll").NewProc("GetDeviceCaps").Addr(), 2, hdc, 88, 0)
+		logPixelsX, _, _ := syscall.SyscallN(syscall.NewLazyDLL("gdi32.dll").NewProc("GetDeviceCaps").Addr(), 2, hdc, 88, 0)
 		return int(logPixelsX), nil
 	}
 	dpi, _, _ := getDpiForWindow.Call(hwnd)

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"image"
 	"image/color"
-	"minego/pkg/kit"
+	"minego/pkg/colorutil"
 )
 
 // CropImage 裁剪图片（安全模式）
@@ -34,12 +34,12 @@ func ClipALine(img image.Image, y int, divColor color.Color) (int, error) {
 	if y < bounds.Min.Y || y >= bounds.Max.Y {
 		return 0, fmt.Errorf("y坐标 %d 超出图像范围 %v", y, bounds)
 	}
-	fmt.Println("y ",y)
+	fmt.Println("y ", y)
 	var first bool = true
 	size := 0
 	for x := bounds.Min.X; x < bounds.Max.X; x++ {
 		fmt.Println("x:", img.At(x, y))
-		if kit.ColorsClose(img.At(x, y), divColor,30*256) {
+		if colorutil.ColorsClose(img.At(x, y), divColor, 30*256) {
 			if first {
 				x += 5
 				first = false

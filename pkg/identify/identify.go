@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"image"
 	"image/color"
-	"minego/pkg/kit"
+	"minego/pkg/colorutil"
 	"os"
 	"strconv"
 )
@@ -105,13 +105,13 @@ func recognizeColor(c color.Color) CellState {
 	// 实现具体颜色匹配逻辑
 	// 此处需要根据实际截图的颜色值进行调整
 
-	if kit.ColorsClose(c, Number1Color, 10*256) {
+	if colorutil.ColorsClose(c, Number1Color, 10*256) {
 		return Number1
-	} else if kit.ColorsClose(c, Number2Color, 10*256) {
+	} else if colorutil.ColorsClose(c, Number2Color, 10*256) {
 		return Number2
-	} else if kit.ColorsClose(c, Number3Color, 10*256) {
+	} else if colorutil.ColorsClose(c, Number3Color, 10*256) {
 		return Number3
-	} else if kit.ColorsClose(c, EmptyColor, 10*256) {
+	} else if colorutil.ColorsClose(c, EmptyColor, 10*256) {
 		return Empty
 	}
 

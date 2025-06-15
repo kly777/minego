@@ -3,3 +3,7 @@
 *.png
 
 test/*
+
+*.exe
+
+sumfile.txt
