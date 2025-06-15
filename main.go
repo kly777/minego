@@ -2,36 +2,37 @@ package main
 
 import (
 	"fmt"
-	"image/png"
-	"os"
-	"github.com/kbinani/screenshot"
+
+	"image/color"
+
+	"minego/clip"
+	"minego/identify"
+
+	"minego/imgP"
+	"minego/kit"
+	"minego/screenshot"
 )
 
+var (
+	BorderColor = color.RGBA{3, 0, 6, 255}
+)
 
 func main() {
-	// 获取显示器数量
-	n := screenshot.NumActiveDisplays()
-	if n <= 0 {
-		panic("未找到可用显示器")
-	}
-
-	// 捕获主显示器（显示器索引从0开始）
-	img, err := screenshot.CaptureDisplay(0)
+	img, err := screenshot.ShotMineSweeper()
 	if err != nil {
-		panic(fmt.Sprintf("截图失败: %v", err))
+		panic(err)
 	}
+	fmt.Println(img.Bounds())
 
-	// 创建截图文件
-	file, err := os.Create("screenshot.png")
+	rect := kit.FindSurroundingRect(img, BorderColor)
+	fmt.Println(rect)
+	img2, err := clip.ClipImage(img, rect)
+
 	if err != nil {
-		panic(fmt.Sprintf("文件创建失败: %v", err))
+		panic(err)
 	}
-	defer file.Close()
-
-	// 保存为PNG格式
-	if err := png.Encode(file, img); err != nil {
-		panic(fmt.Sprintf("编码失败: %v", err))
-	}
-
-	fmt.Println("截图成功保存为 screenshot.png")
+	kit.SaveImg(&img2, "clip.png")
+	x, y := imgP.DetectMineGrid(img2)
+	size := identify.MineSize{Width: x, Height: y}
+	identify.RecognizeMinesweeper(img2, size)
 }
