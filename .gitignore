@@ -7,3 +7,5 @@ test/*
 *.exe
 
 sumfile.txt
+
+*.bmp

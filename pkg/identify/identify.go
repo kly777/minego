@@ -73,7 +73,7 @@ func RecognizeMinesweeper(gridImage image.Image, mineSize MineSize) [][]GridCell
 			x := col*cellWidth + cellWidth/2
 			y := row*cellHeight + cellHeight/2
 
-			fmt.Println(x, y)
+			// fmt.Println(x, y)
 
 			// 边界检查
 			if y >= height || x >= width {

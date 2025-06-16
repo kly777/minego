@@ -12,7 +12,7 @@ run:
 # 默认构建目标
 build:
 	@echo "Building Go binary (version: ${VERSION}) with optimization flags..."
-	go build -ldflags="-s -w -H windowsgui" -o minego.exe main.go
+	go build -ldflags="-s -w -H windowsgui" -o minego.exe cmd/main.go
 
 # 代码质量检查
 lint:

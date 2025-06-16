@@ -38,7 +38,7 @@ func ShotMineSweeper() (*image.RGBA, error) {
 	if err := winapi.ActivateWindow(hwnd); err != nil {
 		fmt.Println("警告:", err)
 	}
-	time.Sleep(time.Second / 10)
+	time.Sleep(time.Second / 100)
 
 	// 获取窗口区域
 	bounds, err := winapi.GetWindowBounds(hwnd)
@@ -48,8 +48,15 @@ func ShotMineSweeper() (*image.RGBA, error) {
 	}
 	fmt.Printf("截图区域: %v\n", bounds)
 
-	// 截图
+	// 记录截图开始时间
+	startTime := time.Now()
+
+	// 执行截图操作
 	img, err := screenshot.CaptureRect(bounds)
+
+	// 计算并记录截图耗时
+	captureDuration := time.Since(startTime)
+	fmt.Printf("截图耗时: %v\n", captureDuration)
 	if err != nil {
 		fmt.Println("截图失败:", err)
 		return nil, err

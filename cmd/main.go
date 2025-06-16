@@ -33,7 +33,10 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	kit.SaveImg(&img2, "clip.png")
+	err = kit.SaveImg(&img2, "clip.png")
+	if err != nil {
+		panic(err)
+	}
 	rows, cols := imageproc.DetectMineGrid(img2) // 更新函数调用
 	fmt.Println(rows, cols)
 	size := identify.MineSize{Cols: cols, Rows: rows}
