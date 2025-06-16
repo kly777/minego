@@ -26,6 +26,7 @@ func saveScreenshot(img *image.RGBA, path string) error {
 	return nil
 }
 
+// TODO: 分离获取位置和截图
 func ShotMineSweeper() (*image.RGBA, error) {
 	hwnd, err := winapi.FindMineWindow()
 	if err != nil {
@@ -46,13 +47,19 @@ func ShotMineSweeper() (*image.RGBA, error) {
 		fmt.Println("错误:", err)
 		return nil, err
 	}
-	fmt.Printf("截图区域: %v\n", bounds)
+	// TODO: 封装为一个函数
+	neoBounds := image.Rect(
+		bounds.Min.X+10,
+		bounds.Min.Y+10,
+		bounds.Max.X-10,
+		bounds.Max.Y-10)
+	fmt.Printf("截图区域: %v\n", neoBounds)
 
 	// 记录截图开始时间
 	startTime := time.Now()
 
 	// 执行截图操作
-	img, err := screenshot.CaptureRect(bounds)
+	img, err := screenshot.CaptureRect(neoBounds)
 
 	// 计算并记录截图耗时
 	captureDuration := time.Since(startTime)

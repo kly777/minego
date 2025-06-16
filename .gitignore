@@ -9,3 +9,5 @@ test/*
 sumfile.txt
 
 *.bmp
+
+output/*
