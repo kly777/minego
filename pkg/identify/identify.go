@@ -3,6 +3,7 @@ package identify
 import (
 	"fmt"
 	"image"
+
 	"image/color"
 	"minego/pkg/colorutil"
 	"os"
@@ -43,48 +44,20 @@ type GridCell struct {
 	X, Y  int // 坐标位置
 }
 
-// RecognizeMinesweeper 识别扫雷游戏状态
-// 参数 gridImage: 扫雷游戏的截图
-// 参数 mineSize: 扫雷格子行列数
-// 返回值: 二维网格状态矩阵
-func RecognizeMinesweeper(gridImage image.Image, mineSize MineSize) [][]GridCell {
-	bounds := gridImage.Bounds()
-	width, height := bounds.Dx(), bounds.Dy()
+func IdentifyMinesweeper(img image.Image, horizontalLines, verticalLines []int) [][]GridCell {
 
-	// 校验 GridSize 合理性
-	if mineSize.Cols <= 0 || mineSize.Rows <= 0 {
-		panic("GridSize 的 Width 和 Height 必须大于 0")
-	}
+	rows := len(horizontalLines) - 1
+	cols := len(verticalLines) - 1
 
-	// 正确计算行列数
-	rows := mineSize.Rows
-	cols := mineSize.Cols
-	cellWidth := width / cols
-	cellHeight := height / rows
+	// 初始化二维切片
 	result := make([][]GridCell, rows)
 	for i := range result {
-		result[i] = make([]GridCell, cols)
-	}
-
-	// 使用标准循环结构
-	for row := range rows {
-		for col := range cols {
-			// 基于 GridSize 的宽高分别计算中心点
-			x := col*cellWidth + cellWidth/2
-			y := row*cellHeight + cellHeight/2
-
-			// fmt.Println(x, y)
-
-			// 边界检查
-			if y >= height || x >= width {
-				result[row][col].State = Unknown
-				continue
-			}
-
-			c := gridImage.At(x, y)
-			state := recognizeColor(c)
-
-			result[row][col] = GridCell{
+		result[i] = make([]GridCell, cols) // 初始化每行的列切片
+		for j := range result[i] {
+			x := (horizontalLines[i] + horizontalLines[i+1]) / 2
+			y := (verticalLines[j] + verticalLines[j+1]) / 2
+			state := recognizeColor(img.At(x, y))
+			result[i][j] = GridCell{
 				State: state,
 				X:     x,
 				Y:     y,
@@ -92,19 +65,14 @@ func RecognizeMinesweeper(gridImage image.Image, mineSize MineSize) [][]GridCell
 		}
 	}
 
-	err := SaveResultToFile(result, "output.txt")
-	if err != nil {
-		fmt.Print(err)
-	}
-
+	SaveResultToFile(result, "GridcellRec.txt")
 	return result
 }
 
-// recognizeColor 将颜色转换为对应状态
 func recognizeColor(c color.Color) CellState {
 	// 实现具体颜色匹配逻辑
 	// 此处需要根据实际截图的颜色值进行调整
-
+	fmt.Println(c)
 	if colorutil.ColorsClose(c, Number1Color, 10*256) {
 		return Number1
 	} else if colorutil.ColorsClose(c, Number2Color, 10*256) {

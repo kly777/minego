@@ -61,18 +61,3 @@ func GetCursorPosO() (int32, int32) {
 	return pt.X, pt.Y
 }
 
-func mainO() {
-	// 示例：点击屏幕坐标 (500, 300)
-	x, y := int32(500), int32(300)
-
-	// 点击前位置
-	startX, startY := GetCursorPos()
-	fmt.Printf("点击前位置: (%d, %d)\n", startX, startY)
-
-	// 执行点击
-	ClickAt(x, y)
-
-	// 点击后位置
-	endX, endY := GetCursorPos()
-	fmt.Printf("点击后位置: (%d, %d)\n", endX, endY)
-}

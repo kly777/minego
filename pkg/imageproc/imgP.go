@@ -13,82 +13,46 @@ import (
 	"sort"
 )
 
-func Example() {
-	if len(os.Args) < 2 {
-		fmt.Println("请提供扫雷截图文件路径")
-		return
-	}
-	imagePath := os.Args[1]
-
-	// 读取图像文件
-	img, err := loadImage(imagePath)
-	if err != nil {
-		fmt.Printf("无法读取图像: %v\n", err)
-		return
-	}
-
-	// 处理图像并获取格子数
-	rows, cols := DetectMineGrid(img)
-	if rows == 0 || cols == 0 {
-		fmt.Println("未能识别到扫雷格子")
-	} else {
-		fmt.Printf("识别结果: %d行 × %d列 格子\n", rows, cols)
-	}
+func DetectMineSweeperGridNum(img image.Image) (gridRows int, gridCols int) {
+	// 计算格子数（行数和列数）
+	horizontalLines, verticalLines := DetectMineSweeperGrid(img)
+	gridRows = len(horizontalLines) - 1
+	gridCols = len(verticalLines) - 1
+	return gridRows, gridCols
 }
 
-// 加载图像文件
-func loadImage(path string) (image.Image, error) {
-	file, err := os.Open(path)
-	if err != nil {
-		return nil, err
-	}
-	defer file.Close()
-
-	img, _, err := image.Decode(file)
-	if err != nil {
-		return nil, err
-	}
-
-	return img, nil
-}
-
-// 检测扫雷网格
-func DetectMineGrid(img image.Image) (int, int) {
+// 检测扫雷网格,由始图像中识别出扫雷格子数
+func DetectMineSweeperGrid(img image.Image) ([]int, []int) {
 	bounds := img.Bounds()
-	width, height := bounds.Dx(), bounds.Dy()
-	fmt.Println("图像尺寸:", width, "x", height)
+	imgWidth, imgHeight := bounds.Dx(), bounds.Dy()
+	fmt.Println("图像尺寸:", imgWidth, "x", imgHeight)
 	// 转换为灰度图
-	gray := toGrayScale(img)
+	grayImg := toGrayScale(img)
 	fmt.Println("图像灰度处理完成")
 
 	// 二值化处理
-	binaryImg := binarize(gray, 60)
+	binaryImg := binarize(grayImg, 60)
 	if err := saveDebugImage(binaryImg, "debug_output.bmp"); err != nil {
 		fmt.Printf("保存调试图像失败: %v\n", err)
 	}
 
 	// 检测水平和垂直线
-	horizontal := detectHorizontalLines(binaryImg, width, height)
-	vertical := detectVerticalLines(binaryImg, width, height)
+	horizontalLines := detectHorizontalLines(binaryImg, imgWidth, imgHeight)
+	verticalLines := detectVerticalLines(binaryImg, imgWidth, imgHeight)
 	// fmt.Println("检测到水平线:", horizontal, "列线:", vertical)
-	// 如果没有检测到线，返回0
-	if len(horizontal) == 0 || len(vertical) == 0 {
-		return 0, 0
+	if len(horizontalLines) == 0 || len(verticalLines) == 0 {
+		return []int{}, []int{}
 	}
 
 	// 对坐标排序
-	sort.Ints(horizontal)
-	sort.Ints(vertical)
+	sort.Ints(horizontalLines)
+	sort.Ints(verticalLines)
 
 	// 聚类和去重（合并相近的线）
-	horizontal = clusterPoints(horizontal, 5)
-	vertical = clusterPoints(vertical, 5)
+	horizontalLines = clusterPoints(horizontalLines, 5)
+	verticalLines = clusterPoints(verticalLines, 5)
 
-	// 计算格子数（行数和列数）
-	rows := len(horizontal) - 1
-	cols := len(vertical) - 1
-
-	return rows, cols
+	return horizontalLines, verticalLines
 }
 
 // 转换为灰度图
@@ -142,7 +106,7 @@ func detectHorizontalLines(binary [][]uint8, width, height int) []int {
 		lineLength := 0
 		maxLineLength := 0
 
-		for x := 0; x < width; x++ {
+		for x := range width {
 			if binary[y][x] == 0 {
 				lineLength++
 			} else {
