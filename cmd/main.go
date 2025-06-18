@@ -15,7 +15,7 @@ import (
 
 	"minego/pkg/winapi"
 
-	"github.com/kbinani/screenshot"
+	"minego/pkg/screenshot"
 )
 
 var (
@@ -61,18 +61,18 @@ func main() {
 	rect.Min.Y -= 1
 	rect.Max.X += 1
 	rect.Max.Y += 1
-	fmt.Println(rect)
+	fmt.Println("边界矩形",rect)
 
 	// 根据边界矩形裁剪图像并保存雷区
 	gridImg, err := clip.ClipImage(windowImg, rect)
 	if err != nil {
 		panic(err)
 	}
-	err = kit.SaveImg(&gridImg, "clip.png")
+	err = kit.SaveImg(gridImg, "clip.png")
 	if err != nil {
 		panic(err)
 	}
-
+	fmt.Println(gridImg.Bounds())
 	// 步骤4: 检测裁剪后图像中的扫雷网格行列数
 	rows, cols := imageproc.DetectMineSweeperGridNum(gridImg) // 更新函数调用
 
@@ -80,6 +80,7 @@ func main() {
 
 	horizontalLines, verticalLines := imageproc.DetectMineSweeperGrid(gridImg)
 	fmt.Println(horizontalLines, verticalLines)
+	fmt.Println(gridImg.Bounds())
 
 	cells := identify.IdentifyMinesweeper(gridImg, horizontalLines, verticalLines)
 

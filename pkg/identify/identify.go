@@ -48,6 +48,7 @@ func IdentifyMinesweeper(img image.Image, horizontalLines, verticalLines []int) 
 
 	rows := len(horizontalLines) - 1
 	cols := len(verticalLines) - 1
+	fmt.Println("bbb",img.Bounds())
 
 	// 初始化二维切片
 	result := make([][]GridCell, rows)
@@ -56,7 +57,9 @@ func IdentifyMinesweeper(img image.Image, horizontalLines, verticalLines []int) 
 		for j := range result[i] {
 			x := (horizontalLines[i] + horizontalLines[i+1]) / 2
 			y := (verticalLines[j] + verticalLines[j+1]) / 2
-			state := recognizeColor(img.At(x, y))
+			// fmt.Println(img.Bounds().Min.X+x,img.Bounds().Min.Y+y)
+			// fmt.Println(img.At(img.Bounds().Min.X+x,img.Bounds().Min.Y+y))
+			state := recognizeColor(img.At(img.Bounds().Min.X+x,img.Bounds().Min.Y+y))
 			result[i][j] = GridCell{
 				State: state,
 				X:     x,
@@ -72,8 +75,7 @@ func IdentifyMinesweeper(img image.Image, horizontalLines, verticalLines []int) 
 func recognizeColor(c color.Color) CellState {
 	// 实现具体颜色匹配逻辑
 	// 此处需要根据实际截图的颜色值进行调整
-	fmt.Println(c)
-	if colorutil.ColorsClose(c, Number1Color, 10*256) {
+	if colorutil.ColorsClose(c, Number1Color, 50*256) {
 		return Number1
 	} else if colorutil.ColorsClose(c, Number2Color, 10*256) {
 		return Number2

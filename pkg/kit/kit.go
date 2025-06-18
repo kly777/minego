@@ -13,14 +13,14 @@ const (
 	about = 8 * 256
 )
 
-func SaveImg(img *image.Image, path string) error {
+func SaveImg(img image.Image, path string) error {
 	file, err := os.Create(path)
 	if err != nil {
 		return fmt.Errorf("创建文件失败: %v", err)
 	}
 	defer file.Close()
 
-	if err := png.Encode(file, *img); err != nil {
+	if err := png.Encode(file, img); err != nil {
 		return fmt.Errorf("保存图片失败: %v", err)
 	}
 	return nil
