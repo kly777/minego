@@ -21,10 +21,7 @@ var (
 	getWindowRect       = user32.NewProc("GetWindowRect")
 )
 
-func FindMineWindow() (uintptr, error) {
-	className := "Minesweeper"
-	windowName := "扫雷"
-
+func FindWindow(className, windowName string) (HWND, error) {
 	classPtr, _ := syscall.UTF16PtrFromString(className)
 	windowPtr, _ := syscall.UTF16PtrFromString(windowName)
 
@@ -37,6 +34,13 @@ func FindMineWindow() (uintptr, error) {
 		return 0, fmt.Errorf("mine window not found")
 	}
 	return hwnd, nil
+}
+
+
+func FindMineWindow() (HWND, error) {
+	className := "Minesweeper"
+	windowName := "扫雷"
+	return FindWindow(className,windowName)
 }
 
 func activateWindow(hwnd uintptr) error {

@@ -2,9 +2,8 @@ package screenshot
 
 import (
 	"errors"
-	"log"
 	"image"
-	"minego/pkg/kit"
+
 	"syscall"
 
 	"unsafe"
@@ -143,15 +142,4 @@ func CaptureRect(rect image.Rectangle) (*image.RGBA, error) {
 	}
 
 	return img, nil
-}
-
-func main() {
-	log.Println("s")
-	rect := image.Rect(0, 0, 300, 300)
-	img, err := CaptureRect(rect)
-	if err != nil {
-		panic(err)
-	}
-	kit.SaveImg(img, "captured.png")
-	log.Println(img.Bounds())
 }

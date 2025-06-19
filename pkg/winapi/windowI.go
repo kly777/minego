@@ -13,10 +13,10 @@ type Window interface {
 	GetBounds() (image.Rectangle, error)
 }
 
-func GetMineSweeperWindow() Window {
-	hwnd, _ := FindMineWindow()
+func NewWindow(hwnd HWND) Window {
 	return &window{hwnd: hwnd}
 }
+
 
 func (w window) Activate() {
 	activateWindow(w.hwnd)

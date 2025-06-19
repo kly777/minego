@@ -14,9 +14,10 @@ import (
 type CellState int
 
 const (
-	Mine CellState = iota - 3
+	Mine CellState = iota - 4
 	Flagged
 	Unknown
+	Locked
 	Empty
 	Number1
 	Number2

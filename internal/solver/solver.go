@@ -2,7 +2,7 @@
 package solver
 
 import (
-	"minego/pkg/identify"
+	"minego/internal/identify"
 )
 
 // solver 扫雷求解器

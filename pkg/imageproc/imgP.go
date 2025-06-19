@@ -218,17 +218,17 @@ func saveDebugImage(bin [][]uint8, path string) error {
 	binary.Write(writer, binary.LittleEndian, uint32(0))     // 重要颜色数
 
 	// 调色板（灰度）
-	for i := 0; i < 256; i++ {
+	for i := range 256 {
 		writer.Write([]byte{byte(i), byte(i), byte(i), 0})
 	}
 
 	// 像素数据（从底部向上）
 	for y := height - 1; y >= 0; y-- {
-		for x := 0; x < width; x++ {
+		for x := range width {
 			writer.WriteByte(bin[y][x])
 		}
 		// 行填充
-		for p := 0; p < padding; p++ {
+		for range padding {
 			writer.WriteByte(0)
 		}
 	}
