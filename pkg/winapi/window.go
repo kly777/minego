@@ -39,7 +39,7 @@ func FindMineWindow() (uintptr, error) {
 	return hwnd, nil
 }
 
-func ActivateWindow(hwnd uintptr) error {
+func activateWindow(hwnd uintptr) error {
 	showWindow.Call(hwnd, SW_RESTORE)
 	_, _, err := setForegroundWindow.Call(hwnd)
 	if err != syscall.Errno(0) {
@@ -48,7 +48,7 @@ func ActivateWindow(hwnd uintptr) error {
 	return nil
 }
 
-func GetWindowBounds(hwnd uintptr) (image.Rectangle, error) {
+func getWindowBounds(hwnd uintptr) (image.Rectangle, error) {
 	var rect [4]int32
 	_, _, _ = getWindowRect.Call(hwnd, uintptr(unsafe.Pointer(&rect[0])))
 

@@ -26,34 +26,28 @@ var (
 // 主要流程包括：截图、定位扫雷区域、裁剪图像、保存中间结果、网格检测和雷区识别
 func main() {
 	click.SetDPIAware()
-	// 获取窗口句柄
-	hwnd, err := winapi.FindMineWindow()
-	if err != nil {
-		panic(err)
-	}
-	fmt.Println("窗口句柄:", hwnd)
-	if err := winapi.ActivateWindow(hwnd); err != nil {
-		fmt.Println("警告:", err)
-	}
+
+	mineSweeperWindow := winapi.GetMineSweeperWindow()
+	mineSweeperWindow.Activate()
 	time.Sleep(20 * time.Millisecond)
 	// 获取窗口位置
-	windowBounds, err := winapi.GetWindowBounds(hwnd)
+	windowBounds, err := mineSweeperWindow.GetBounds()
 	if err != nil {
 		panic(err)
 	}
+	// 向内缩10像素，排除非扫雷窗口
 	windowBounds.Min.X += 10
 	windowBounds.Min.Y += 10
 	windowBounds.Max.X -= 10
 	windowBounds.Max.Y -= 10
-
-	fmt.Printf("截图区域: %v\n", windowBounds)
+	fmt.Printf("扫雷窗口截图区域: %v\n", windowBounds)
 
 	// 截取扫雷窗口
 	windowImg, err := screenshot.CaptureRect(windowBounds)
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println(windowImg.Bounds())
+	fmt.Println("图像有效范围",windowImg.Bounds())
 
 	// 查找扫雷雷区的边界矩形，并进行1像素扩展
 	rect := kit.FindSurroundingRect(windowImg, BorderColor)
@@ -95,7 +89,6 @@ func main() {
 	fmt.Println("点击", screenX, screenY)
 	click.PhysicalMouseClick(int32(screenX), int32(screenY))
 }
-
 
 // 在调用鼠标点击前转换为相对窗口坐标
 func cellToScreenPos(cell identify.GridCell, bounds image.Rectangle, rect image.Rectangle) (int, int) {
