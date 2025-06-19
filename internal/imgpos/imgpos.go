@@ -2,45 +2,59 @@ package imgpos
 
 import "image"
 
-type Imgpos struct {
-	Image image.Image
-	position image.Point
+// ImageWithOffset 表示带有偏移量的图像
+type ImageWithOffset struct {
+	Image  image.Image   // 图像对象
+	Offset image.Point   // 图像在父坐标系中的偏移量
 }
 
-type Rectpos struct {
-	Rect image.Rectangle
-	position image.Point
+// RectWithOffset 表示带有偏移量的矩形区域
+type RectWithOffset struct {
+	Rect   image.Rectangle // 矩形区域
+	Offset image.Point     // 矩形在父坐标系中的偏移量
 }
 
-func NewImgPos(img image.Image, pos image.Point) *Imgpos {
-	return &Imgpos{img, pos}
+// NewImageWithOffset 创建带偏移量的图像对象
+func NewImageWithOffset(img image.Image, offset image.Point) *ImageWithOffset {
+	return &ImageWithOffset{img, offset}
 }
 
-func NewRectPos(rect image.Rectangle, pos image.Point) *Rectpos {
-	return &Rectpos{rect, pos}
-}
-func (rp *Rectpos) Position() image.Point {
-	return rp.position
+// NewRectWithOffset 创建带偏移量的矩形对象
+func NewRectWithOffset(rect image.Rectangle, offset image.Point) *RectWithOffset {
+	return &RectWithOffset{rect, offset}
 }
 
-func (ip *Imgpos) Position() image.Point {
-	return ip.position
+// PositionCalculator 定义位置计算接口
+type PositionCalculator interface {
+	// RelativePosition 返回相对位置（偏移量）
+	RelativePosition() image.Point
+	// AbsolutePosition 返回绝对位置（屏幕坐标）
+	AbsolutePosition() image.Point
 }
 
-func (ip *Imgpos) AsPosition() image.Point {
-	x:=ip.position.X+ip.Image.Bounds().Min.X
-	y:=ip.position.Y+ip.Image.Bounds().Min.Y
+// RelativePosition 实现PositionCalculator接口
+func (img *ImageWithOffset) RelativePosition() image.Point {
+	return img.Offset
+}
+
+// AbsolutePosition 计算图像在屏幕中的绝对位置
+func (img *ImageWithOffset) AbsolutePosition() image.Point {
+	bounds := img.Image.Bounds()
 	return image.Point{
-		X:x,
-		Y:y,
+		X: img.Offset.X + bounds.Min.X,
+		Y: img.Offset.Y + bounds.Min.Y,
 	}
 }
 
-func (ip *Rectpos) AsPosition() image.Point {
-	x:=ip.position.X+ip.Rect.Min.X
-	y:=ip.position.Y+ip.Rect.Min.Y
+// RelativePosition 实现PositionCalculator接口
+func (rect *RectWithOffset) RelativePosition() image.Point {
+	return rect.Offset
+}
+
+// AbsolutePosition 计算矩形在屏幕中的绝对位置
+func (rect *RectWithOffset) AbsolutePosition() image.Point {
 	return image.Point{
-		X:x,
-		Y:y,
+		X: rect.Offset.X + rect.Rect.Min.X,
+		Y: rect.Offset.Y + rect.Rect.Min.Y,
 	}
 }

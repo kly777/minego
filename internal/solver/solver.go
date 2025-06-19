@@ -2,15 +2,15 @@
 package solver
 
 import (
-	"minego/internal/identify"
+	"minego/internal/cell"
 )
 
 // solver 扫雷求解器
 type solver struct {
-	grid [][]identify.GridCell
+	grid [][]cell.GridCell
 }
 
-func NewSolver(grid [][]identify.GridCell) *solver {
+func NewSolver(grid [][]cell.GridCell) *solver {
 	return &solver{grid: grid}
 }
 

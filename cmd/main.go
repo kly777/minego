@@ -10,7 +10,7 @@ import (
 	"minego/internal/imgpos"
 	"minego/internal/window"
 	"minego/pkg/clip"
-	"minego/pkg/imageproc"
+
 	"minego/pkg/kit"
 	"minego/pkg/winapi/click"
 
@@ -53,7 +53,7 @@ func main() {
 	}
 
 	mineField := kit.FindSurroundingRect(windowImg, BorderColor)
-	mineFieldPos := imgpos.NewRectPos(mineField, windowBounds.Min)
+	mineFieldPos := imgpos.NewRectWithOffset(mineField, windowBounds.Min)
 	// 添加边界保护
 	mineField.Min.X = max(mineField.Min.X-gridBorderExpand, 0)
 	mineField.Min.Y = max(mineField.Min.Y-gridBorderExpand, 0)
@@ -65,22 +65,14 @@ func main() {
 	if err != nil {
 		log.Fatalf("图像裁剪失败: %v", err)
 	}
-	mineFieldImgPos := imgpos.NewImgPos(mineFieldImg, mineFieldPos.AsPosition())
+	mineFieldImgPos := imgpos.NewImageWithOffset(mineFieldImg, mineFieldPos.AbsolutePosition())
 	if err := kit.SaveImg(mineFieldImg, "clip.png"); err != nil {
 		log.Fatalf("保存图像失败: %v", err)
 	}
 
-	horizontalLines, verticalLines := imageproc.DetectMineSweeperGrid(mineFieldImgPos.Image)
-	cells := identify.IdentifyMinesweeper(mineFieldImgPos, horizontalLines, verticalLines)
+	cells := identify.IdentifyMinesweeper(mineFieldImgPos)
 
-	x, y := 4, 4
-	screenX, screenY := cellToScreenPos(cells[x][y])
-	click.PhysicalMouseClick(int32(screenX), int32(screenY))
-}
-
-// 在调用鼠标点击前转换为相对窗口坐标
-func cellToScreenPos(cell identify.GridCell) (int, int) {
-	screenX := cell.Base.X + cell.X // 补偿窗口边框
-	screenY := cell.Base.Y + cell.Y
-	return screenX, screenY
+	x, y := 4, 5
+	screenPoint := cells[y][x].ScreenPos()
+	click.Click(screenPoint)
 }

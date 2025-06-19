@@ -2,6 +2,7 @@ package click
 
 import (
 	"fmt"
+	"image"
 	"syscall"
 	"unsafe"
 )
@@ -66,6 +67,11 @@ func GetSystemMetrics(index int) int32 {
 	r1, _, _ := procGetSystemMetrics.Call(uintptr(index))
 	return int32(r1)
 }
+
+func Click(p image.Point){
+	PhysicalMouseClick(int32(p.X),int32(p.Y))
+}
+
 
 // PhysicalMouseClick 在指定物理坐标执行鼠标点击
 func PhysicalMouseClick(x, y int32) {
