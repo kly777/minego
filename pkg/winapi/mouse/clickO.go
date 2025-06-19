@@ -1,7 +1,7 @@
 package mouse
 
 import (
-	"fmt"
+	"log"
 	"time"
 	"unsafe"
 )
@@ -23,11 +23,11 @@ func ClickAtO(x, y int32) {
 	// 获取屏幕分辨率
 	cxScreen, _, _ := procGetSystemMetrics.Call(SM_CXSCREEN)
 	cyScreen, _, _ := procGetSystemMetrics.Call(SM_CYSCREEN)
-	fmt.Println(cxScreen, cyScreen)
+	log.Println("Screen metrics:", cxScreen, cyScreen)
 	// 转换为绝对坐标 (0-65535)
 	absX := x * 65535 / int32(cxScreen)
 	absY := y * 65535 / int32(cyScreen)
-	fmt.Println(absX, absY)
+	log.Println("Absolute coordinates:", absX, absY)
 
 	// 移动鼠标
 	_, _, _ = procMouseEvent.Call(

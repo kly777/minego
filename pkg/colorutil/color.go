@@ -2,7 +2,6 @@
 package colorutil
 
 import (
-
 	"image/color"
 	"math"
 )
@@ -18,9 +17,21 @@ func ColorsClose(c1, c2 color.Color, length int) bool {
 func ColorsDist(c1, c2 color.Color) int {
 	r1, g1, b1, _ := c1.RGBA()
 	r2, g2, b2, _ := c2.RGBA()
-	return int(math.Abs(float64(r1-r2)) +
-		math.Abs(float64(g1-g2)) +
-		math.Abs(float64(b1-b2)))
+
+	rd := int(r1) - int(r2)
+	gd := int(g1) - int(g2)
+	bd := int(b1) - int(b2)
+
+	if rd < 0 {
+		rd = -rd
+	}
+	if gd < 0 {
+		gd = -gd
+	}
+	if bd < 0 {
+		bd = -bd
+	}
+	return rd + gd + bd
 }
 
 // 颜色比较函数（考虑不同颜色模型的转换）

@@ -1,7 +1,7 @@
 package mouse
 
 import (
-	"fmt"
+	"log"
 	"syscall"
 	"unsafe"
 )
@@ -56,8 +56,8 @@ type INPUT struct {
 func ClickAt(x, y int) {
 	x32 := int32(x)
 	y32 := int32(y)
-	fmt.Println("ClickAt:", x, y)
-	fmt.Println("ClickAtI32:", x32, y32)
+	log.Println("ClickAt:", x, y)
+	log.Println("ClickAtI32:", x32, y32)
 	ClickAtI32(x32, y32)
 }
 
@@ -91,9 +91,9 @@ func ClickAtI32(x, y int32) {
 	absX := int32(ratioX * 65535)
 	absY := int32(ratioY * 65535)
 
-	fmt.Printf("虚拟屏幕: 位置(%d,%d) 尺寸(%d×%d)\n",
+	log.Printf("虚拟屏幕: 位置(%d,%d) 尺寸(%d×%d)\n",
 		screenX, screenY, screenWidth, screenHeight)
-	fmt.Printf("绝对坐标: 原始(%d,%d) => 相对(%d,%d) => 绝对(%d,%d)\n",
+	log.Printf("绝对坐标: 原始(%d,%d) => 相对(%d,%d) => 绝对(%d,%d)\n",
 		x, y, relX, relY, absX, absY)
 
 	// 后续点击操作不变...
@@ -138,7 +138,7 @@ func ClickAtI32(x, y int32) {
 		)
 
 		if r == 0 {
-			fmt.Printf("SendInput 失败: %v\n", err)
+			log.Printf("SendInput 失败: %v\n", err)
 		}
 	}
 }

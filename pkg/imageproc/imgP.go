@@ -3,7 +3,7 @@ package imageproc
 import (
 	"bufio"
 	"encoding/binary"
-	"fmt"
+	"log"
 	"image"
 
 	_ "image/jpeg"
@@ -25,15 +25,15 @@ func DetectMineSweeperGridNum(img image.Image) (gridRows int, gridCols int) {
 func DetectMineSweeperGrid(img image.Image) ([]int, []int) {
 	bounds := img.Bounds()
 	imgWidth, imgHeight := bounds.Dx(), bounds.Dy()
-	fmt.Println("图像尺寸:", imgWidth, "x", imgHeight)
+	log.Println("图像尺寸:", imgWidth, "x", imgHeight)
 	// 转换为灰度图
 	grayImg := toGrayScale(img)
-	fmt.Println("图像灰度处理完成")
+	log.Println("图像灰度处理完成")
 
 	// 二值化处理
 	binaryImg := binarize(grayImg, 60)
 	if err := saveDebugImage(binaryImg, "debug_output.bmp"); err != nil {
-		fmt.Printf("保存调试图像失败: %v\n", err)
+		log.Printf("保存调试图像失败: %v\n", err)
 	}
 
 	// 检测水平和垂直线

@@ -57,11 +57,11 @@ func main() {
 
 	// 查找扫雷雷区的边界矩形，并进行1像素扩展
 	rect := kit.FindSurroundingRect(windowImg, BorderColor)
-	rect.Min.X -= 1
-	rect.Min.Y -= 1
-	rect.Max.X += 1
-	rect.Max.Y += 1
-	fmt.Println("边界矩形",rect)
+	rect.Min.X -= 3
+	rect.Min.Y -= 3
+	rect.Max.X += 3
+	rect.Max.Y += 3
+	fmt.Println("边界矩形", rect)
 
 	// 根据边界矩形裁剪图像并保存雷区
 	gridImg, err := clip.ClipImage(windowImg, rect)
@@ -86,15 +86,16 @@ func main() {
 
 	fmt.Printf("截图区域: %v\n", windowBounds)
 	fmt.Println(windowImg.Bounds())
-	fmt.Println(rect)
-	x := 3
-	y := 0
+	fmt.Println(gridImg.Bounds())
+	x := 4
+	y := 4
 
 	screenX, screenY := cellToScreenPos(cells[x][y], windowBounds, rect)
 	fmt.Println("state", cells[x][y].State)
 	fmt.Println("点击", screenX, screenY)
 	click.PhysicalMouseClick(int32(screenX), int32(screenY))
 }
+
 
 // 在调用鼠标点击前转换为相对窗口坐标
 func cellToScreenPos(cell identify.GridCell, bounds image.Rectangle, rect image.Rectangle) (int, int) {

@@ -1,6 +1,7 @@
 package kit
 
 import (
+	"log"
 	"fmt"
 	"image"
 	"image/color"
@@ -33,7 +34,7 @@ func FindSurroundingRect(img image.Image, targetColor color.Color) image.Rectang
 	bottom := FindBottommostColor(img, targetColor)
 	p1 := image.Point{left.X, top.Y}
 	p2 := image.Point{right.X, bottom.Y}
-	fmt.Println("p1", p1, "p2", p2)
+	log.Println("Rectangle points:", p1, p2)
 	rect := image.Rectangle{p1, p2}
 	return rect
 }

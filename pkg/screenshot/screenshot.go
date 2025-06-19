@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"image"
 	"image/png"
+	"log"
 	"os"
 	"time"
 
@@ -49,21 +50,21 @@ func ShotMineSweeper() (*image.RGBA, error) {
 	// 获取扫雷窗口句柄
 	hwnd, err := winapi.FindMineWindow()
 	if err != nil {
-		fmt.Println("错误:", err)
+		log.Printf("错误: %v", err)
 		return nil, err
 	}
-	fmt.Println("窗口句柄:", hwnd)
+	log.Println("窗口句柄:", hwnd)
 
 	// 激活目标窗口
 	if err := winapi.ActivateWindow(hwnd); err != nil {
-		fmt.Println("警告:", err)
+		log.Printf("警告: %v", err)
 	}
 	time.Sleep(20 * time.Millisecond)
 
 	// 计算有效截图区域（去除窗口边框）
 	bounds, err := winapi.GetWindowBounds(hwnd)
 	if err != nil {
-		fmt.Println("错误:", err)
+		log.Printf("错误: %v", err)
 		return nil, err
 	}
 	// TODO: 封装为一个函数
@@ -73,22 +74,22 @@ func ShotMineSweeper() (*image.RGBA, error) {
 		bounds.Max.X-10,
 		bounds.Max.Y-10,
 	)
-	fmt.Printf("截图区域: %v\n", neoBounds)
+	log.Printf("截图区域: %v\n", neoBounds)
 
 	// 执行截图并测量耗时
 
 	img, err := screenshot.CaptureRect(neoBounds)
 	if err != nil {
-		fmt.Println("截图失败:", err)
+		log.Printf("截图失败: %v", err)
 		return nil, err
 	}
 
 	// 保存截图到本地文件
 	outputPath := "minesweeper.png"
 	if err := saveRGBA(img, outputPath); err != nil {
-		fmt.Println("保存失败:", err)
+		log.Printf("保存失败: %v", err)
 	} else {
-		fmt.Printf("截图已保存至: %s\n", outputPath)
+		log.Printf("截图已保存至: %s\n", outputPath)
 	}
 	return img, nil
 }
