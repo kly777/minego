@@ -29,6 +29,7 @@ type GridCell struct {
 	State        CellState
 	X, Y         int // 坐标位置
 	Width, Hight int
+	Position image.Point
 }
 
 func NewMineField(bounds image.Rectangle, cells [][]GridCell) *MineField {

@@ -40,6 +40,10 @@ func IdentifyMinesweeper(imgpos *imgpos.ImageWithOffset) [][]cell.GridCell {
 				Y:      y,
 				Width:  width,
 				Hight:  hight,
+				Position: image.Point{
+					X: j,
+					Y: i,
+				},
 			}
 		}
 	}
@@ -52,6 +56,9 @@ var (
 	Number1FeatureColor = color.RGBA{65, 79, 188, 255}
 	Number2FeatureColor = color.RGBA{30, 105, 3, 255}
 	Number3FeatureColor = color.RGBA{175, 5, 8, 255}
+	Number4Color        = color.RGBA{3, 1, 130, 255}
+	Number5Color        = color.RGBA{124, 0, 2, 255}
+	FlaggedColor        = color.RGBA{247, 247, 244, 255}
 )
 
 func recognizeColor(img image.Image, x, y int, width, hight int) cell.CellState {
@@ -61,6 +68,12 @@ func recognizeColor(img image.Image, x, y int, width, hight int) cell.CellState 
 		return cell.Number2
 	} else if hasColorWithinRange(img, x, y, 7, Number3FeatureColor, 5) {
 		return cell.Number3
+	} else if hasColorWithinRange(img, x, y, 7, Number4Color, 5) {
+		return cell.Number4
+	} else if hasColorWithinRange(img, x, y, 7, Number5Color, 5) {
+		return cell.Number5
+	} else if hasColorWithinRange(img, x, y, 17, FlaggedColor, 25) {
+		return cell.Flagged
 	} else if diffColor(img, x, y, x, y+hight*2/6) < 30*256 {
 		return cell.Empty
 	}

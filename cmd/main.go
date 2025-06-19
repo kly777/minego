@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 
 	"image/color"
@@ -8,6 +9,7 @@ import (
 
 	"minego/internal/identify"
 	"minego/internal/imgpos"
+	"minego/internal/solver"
 	"minego/internal/window"
 	"minego/pkg/clip"
 
@@ -47,32 +49,55 @@ func main() {
 	windowBounds.Max.X -= windowBorderInset
 	windowBounds.Max.Y -= windowBorderInset
 
-	windowImg, err := screenshot.CaptureRect(windowBounds)
-	if err != nil {
-		log.Fatalf("窗口截图失败: %v", err)
+	for i := range 19 {
+		windowImg, err := screenshot.CaptureRect(windowBounds)
+		if err != nil {
+			log.Fatalf("窗口截图失败: %v", err)
+		}
+
+		mineField := kit.FindSurroundingRect(windowImg, BorderColor)
+		mineFieldPos := imgpos.NewRectWithOffset(mineField, windowBounds.Min)
+		// 添加边界保护
+		mineField.Min.X = max(mineField.Min.X-gridBorderExpand, 0)
+		mineField.Min.Y = max(mineField.Min.Y-gridBorderExpand, 0)
+		mineField.Max.X = min(mineField.Max.X+gridBorderExpand, windowImg.Bounds().Dx())
+		mineField.Max.Y = min(mineField.Max.Y+gridBorderExpand, windowImg.Bounds().Dy())
+
+		mineFieldImg, err := clip.ClipImage(windowImg, mineField)
+
+		if err != nil {
+			log.Fatalf("图像裁剪失败: %v", err)
+		}
+		mineFieldImgPos := imgpos.NewImageWithOffset(mineFieldImg, mineFieldPos.AbsolutePosition())
+		if err := kit.SaveImg(mineFieldImg, "clip.png"); err != nil {
+			log.Fatalf("保存图像失败: %v", err)
+		}
+
+		cells := identify.IdentifyMinesweeper(mineFieldImgPos)
+
+		// x, y := 4, 5
+		// screenPoint := cells[y][x].ScreenPos()
+		solver := solver.NewSolver(cells)
+		safePoints, minePoints := solver.Solve()
+		fmt.Println(i)
+		fmt.Println(safePoints)
+		fmt.Println(minePoints)
+		if len(safePoints) == 0 && len(minePoints) == 0 && i >= 3 {
+			break
+		}
+		for _, point := range safePoints {
+			p := cells[point.Y][point.X].ScreenPos()
+			click.Click(p)
+			time.Sleep(time.Millisecond * 15)
+		}
+		for _, point := range minePoints {
+			p := cells[point.Y][point.X].ScreenPos()
+			click.RightClick(p)
+			time.Sleep(time.Millisecond * 15)
+		}
+		if i == 0 {
+			p := cells[5][5].ScreenPos()
+			click.Click(p)
+		}
 	}
-
-	mineField := kit.FindSurroundingRect(windowImg, BorderColor)
-	mineFieldPos := imgpos.NewRectWithOffset(mineField, windowBounds.Min)
-	// 添加边界保护
-	mineField.Min.X = max(mineField.Min.X-gridBorderExpand, 0)
-	mineField.Min.Y = max(mineField.Min.Y-gridBorderExpand, 0)
-	mineField.Max.X = min(mineField.Max.X+gridBorderExpand, windowImg.Bounds().Dx())
-	mineField.Max.Y = min(mineField.Max.Y+gridBorderExpand, windowImg.Bounds().Dy())
-
-	mineFieldImg, err := clip.ClipImage(windowImg, mineField)
-
-	if err != nil {
-		log.Fatalf("图像裁剪失败: %v", err)
-	}
-	mineFieldImgPos := imgpos.NewImageWithOffset(mineFieldImg, mineFieldPos.AbsolutePosition())
-	if err := kit.SaveImg(mineFieldImg, "clip.png"); err != nil {
-		log.Fatalf("保存图像失败: %v", err)
-	}
-
-	cells := identify.IdentifyMinesweeper(mineFieldImgPos)
-
-	x, y := 4, 5
-	screenPoint := cells[y][x].ScreenPos()
-	click.Click(screenPoint)
 }
