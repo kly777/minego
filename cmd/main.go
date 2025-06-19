@@ -1,18 +1,18 @@
 package main
 
 import (
-	"image"
 	"log"
 
 	"image/color"
 	"time"
 
-	"minego/pkg/clip"
 	"minego/internal/identify"
+	"minego/internal/imgpos"
+	"minego/internal/window"
+	"minego/pkg/clip"
 	"minego/pkg/imageproc"
 	"minego/pkg/kit"
 	"minego/pkg/winapi/click"
-	"minego/internal/window"
 
 	"minego/pkg/screenshot"
 )
@@ -53,6 +53,7 @@ func main() {
 	}
 
 	mineField := kit.FindSurroundingRect(windowImg, BorderColor)
+	mineFieldPos := imgpos.NewRectPos(mineField, windowBounds.Min)
 	// 添加边界保护
 	mineField.Min.X = max(mineField.Min.X-gridBorderExpand, 0)
 	mineField.Min.Y = max(mineField.Min.Y-gridBorderExpand, 0)
@@ -60,31 +61,26 @@ func main() {
 	mineField.Max.Y = min(mineField.Max.Y+gridBorderExpand, windowImg.Bounds().Dy())
 
 	mineFieldImg, err := clip.ClipImage(windowImg, mineField)
+
 	if err != nil {
 		log.Fatalf("图像裁剪失败: %v", err)
 	}
-
+	mineFieldImgPos := imgpos.NewImgPos(mineFieldImg, mineFieldPos.AsPosition())
 	if err := kit.SaveImg(mineFieldImg, "clip.png"); err != nil {
 		log.Fatalf("保存图像失败: %v", err)
 	}
 
-	horizontalLines, verticalLines := imageproc.DetectMineSweeperGrid(mineFieldImg)
-	cells := identify.IdentifyMinesweeper(mineFieldImg, horizontalLines, verticalLines)
+	horizontalLines, verticalLines := imageproc.DetectMineSweeperGrid(mineFieldImgPos.Image)
+	cells := identify.IdentifyMinesweeper(mineFieldImgPos, horizontalLines, verticalLines)
 
 	x, y := 4, 4
-	screenX, screenY := cellToScreenPos(cells[x][y], windowBounds, mineField)
+	screenX, screenY := cellToScreenPos(cells[x][y])
 	click.PhysicalMouseClick(int32(screenX), int32(screenY))
 }
 
 // 在调用鼠标点击前转换为相对窗口坐标
-func cellToScreenPos(cell identify.GridCell, bounds image.Rectangle, rect image.Rectangle) (int, int) {
-	// 计算相对于窗口的坐标 = 裁剪区域偏移 + 格子中心偏移
-	relX := rect.Min.X + cell.X
-	relY := rect.Min.Y + cell.Y
-
-	// 加上窗口位置和边框补偿
-	screenX := bounds.Min.X + relX // 补偿窗口边框
-	screenY := bounds.Min.Y + relY
-
+func cellToScreenPos(cell identify.GridCell) (int, int) {
+	screenX := cell.Base.X + cell.X // 补偿窗口边框
+	screenY := cell.Base.Y + cell.Y
 	return screenX, screenY
 }

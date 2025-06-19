@@ -6,6 +6,7 @@ import (
 	"log"
 
 	"image/color"
+	"minego/internal/imgpos"
 	"minego/pkg/colorutil"
 	"os"
 	"strconv"
@@ -34,17 +35,18 @@ type MineSize struct {
 }
 
 type GridCell struct {
+	Base         image.Point
 	State        CellState
 	X, Y         int // 坐标位置
 	Width, Hight int
 }
 
-func IdentifyMinesweeper(img image.Image, horizontalLines, verticalLines []int) [][]GridCell {
+func IdentifyMinesweeper(imgpos *imgpos.Imgpos, horizontalLines, verticalLines []int) [][]GridCell {
 
 	rows := len(horizontalLines) - 1
 	cols := len(verticalLines) - 1
 	log.Println("aaa", rows, cols)
-	log.Println("bbb", img.Bounds())
+	log.Println("bbb", imgpos.Image.Bounds())
 
 	// 初始化二维切片
 	result := make([][]GridCell, rows)
@@ -55,10 +57,11 @@ func IdentifyMinesweeper(img image.Image, horizontalLines, verticalLines []int) 
 			x := (verticalLines[j] + verticalLines[j+1]) / 2
 			width := (verticalLines[j+1] - verticalLines[j])
 			hight := (horizontalLines[i+1] - horizontalLines[i])
-			// fmt.Println(img.Bounds().Min.X+x, img.Bounds().Min.Y+y)
 
-			state := recognizeColor(img, x, y, width, hight)
+
+			state := recognizeColor(imgpos.Image, x, y, width, hight)
 			result[i][j] = GridCell{
+				Base:  imgpos.Position(),
 				State: state,
 				X:     x,
 				Y:     y,
