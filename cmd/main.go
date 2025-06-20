@@ -20,7 +20,7 @@ import (
 )
 
 var (
-	BorderColor = color.RGBA{3, 0, 6, 255}
+	BorderColor = color.RGBA{7, 8, 9, 255}
 )
 
 // main 函数是程序的入口点，用于执行扫雷游戏识别任务
@@ -49,55 +49,97 @@ func main() {
 	windowBounds.Max.X -= windowBorderInset
 	windowBounds.Max.Y -= windowBorderInset
 
-	for i := range 19 {
+	for i := range 30 {
+		// time.Sleep(2*time.Second)
+		log.Printf("=== 第 %d 轮迭代 ===", i+1)
+
+		// 1. 截图阶段
+		var total time.Duration
+		start := time.Now()
 		windowImg, err := screenshot.CaptureRect(windowBounds)
 		if err != nil {
-			log.Fatalf("窗口截图失败: %v", err)
+			panic(err)
 		}
+		elapsed := time.Since(start)
+		log.Printf("📸 截图耗时: %d ms", elapsed.Milliseconds())
+		total += elapsed
 
+		// 2. 雷区定位阶段
+		start = time.Now()
 		mineField := kit.FindSurroundingRect(windowImg, BorderColor)
 		mineFieldPos := imgpos.NewRectWithOffset(mineField, windowBounds.Min)
-		// 添加边界保护
+		// 边界调整
 		mineField.Min.X = max(mineField.Min.X-gridBorderExpand, 0)
 		mineField.Min.Y = max(mineField.Min.Y-gridBorderExpand, 0)
 		mineField.Max.X = min(mineField.Max.X+gridBorderExpand, windowImg.Bounds().Dx())
 		mineField.Max.Y = min(mineField.Max.Y+gridBorderExpand, windowImg.Bounds().Dy())
+		elapsed = time.Since(start)
+		log.Printf("📍 定位耗时: %d ms", elapsed.Milliseconds())
+		total += elapsed
 
+		// 3. 图像裁剪阶段
+		start = time.Now()
 		mineFieldImg, err := clip.ClipImage(windowImg, mineField)
-
-		if err != nil {
-			log.Fatalf("图像裁剪失败: %v", err)
-		}
 		mineFieldImgPos := imgpos.NewImageWithOffset(mineFieldImg, mineFieldPos.AbsolutePosition())
-		if err := kit.SaveImg(mineFieldImg, "clip.png"); err != nil {
-			log.Fatalf("保存图像失败: %v", err)
-		}
+		elapsed = time.Since(start)
+		log.Printf("✂️ 裁剪耗时: %d ms", elapsed.Milliseconds())
+		total += elapsed
 
+		// 4. 图像保存阶段
+		// start = time.Now()
+		// go kit.SaveImg(mineFieldImg, "clip.png")
+		// elapsed = time.Since(start)
+		// log.Printf("💾 保存耗时: %d ms", elapsed.Milliseconds())
+		// total += elapsed
+
+		// 5. 雷区识别阶段
+		start = time.Now()
 		cells := identify.IdentifyMinesweeper(mineFieldImgPos)
+		fmt.Println(len(cells), "x", len(cells[0]))
+		elapsed = time.Since(start)
+		log.Printf("🧠 识别耗时: %d ms", elapsed.Milliseconds())
+		total += elapsed
 
-		// x, y := 4, 5
-		// screenPoint := cells[y][x].ScreenPos()
+		// 6. 求解阶段
+		start = time.Now()
 		solver := solver.NewSolver(cells)
 		safePoints, minePoints := solver.Solve()
-		fmt.Println(i)
-		fmt.Println(safePoints)
-		fmt.Println(minePoints)
+		elapsed = time.Since(start)
+		log.Printf("🧮 求解耗时: %d ms", elapsed.Milliseconds())
+		total += elapsed
+
+		// 7. 输出结果
+		fmt.Println("✅ 安全点:", safePoints)
+		fmt.Println("🚩 雷点:", minePoints)
+
+		// 8. 点击操作阶段
 		if len(safePoints) == 0 && len(minePoints) == 0 && i >= 3 {
+			log.Printf("🛑 未检测到新操作，退出循环")
 			break
 		}
+
+		start = time.Now()
+		// 左键点击
 		for _, point := range safePoints {
 			p := cells[point.Y][point.X].ScreenPos()
 			click.Click(p)
-			time.Sleep(time.Millisecond * 15)
+			time.Sleep(time.Millisecond * 20)
 		}
+
+		// 右键点击
 		for _, point := range minePoints {
 			p := cells[point.Y][point.X].ScreenPos()
 			click.RightClick(p)
-			time.Sleep(time.Millisecond * 15)
+			time.Sleep(time.Millisecond * 20)
 		}
-		if i == 0 {
-			p := cells[5][5].ScreenPos()
-			click.Click(p)
-		}
+
+		// 首次特殊点击
+		p := cells[len(cells)/2][len(cells[0])/2].ScreenPos()
+		click.Click(p)
+		elapsed = time.Since(start)
+		log.Printf("🖱️ 操作耗时: %d ms", elapsed.Milliseconds())
+		total += elapsed
+
+		log.Printf("📊 总耗时: %d ms", total.Milliseconds())
 	}
 }

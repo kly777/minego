@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	about = 8 * 256
+	about = 10 * 256
 )
 
 func SaveImg(img image.Image, path string) error {
@@ -106,7 +106,7 @@ func FindBottommostColor(img image.Image, targetColor color.Color) *image.Point 
 	for y := bounds.Max.Y - 1; y >= bounds.Min.Y; y-- {
 		// 同一行内从左到右遍历
 		for x := bounds.Min.X; x < bounds.Max.X; x++ {
-			if colorutil.ColorsClose(img.At(x, y), targetColor, 6*256) {
+			if colorutil.ColorsClose(img.At(x, y), targetColor, 10*256) && colorutil.ColorsClose(img.At(x+20, y), targetColor, 10*256){
 				return &image.Point{x, y}
 			}
 		}

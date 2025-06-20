@@ -44,6 +44,7 @@ func IdentifyMinesweeper(imgpos *imgpos.ImageWithOffset) [][]cell.GridCell {
 					X: j,
 					Y: i,
 				},
+				Color:imgpos.Image.At(imgpos.Image.Bounds().Min.X+x, imgpos.Image.Bounds().Min.Y+y),
 			}
 		}
 	}
@@ -53,28 +54,30 @@ func IdentifyMinesweeper(imgpos *imgpos.ImageWithOffset) [][]cell.GridCell {
 }
 
 var (
+	BackgroundColor     = color.RGBA{255, 255, 255, 255}
 	Number1FeatureColor = color.RGBA{65, 79, 188, 255}
 	Number2FeatureColor = color.RGBA{30, 105, 3, 255}
-	Number3FeatureColor = color.RGBA{175, 5, 8, 255}
+	Number3Color        = color.RGBA{175, 5, 8, 255}
 	Number4Color        = color.RGBA{3, 1, 130, 255}
 	Number5Color        = color.RGBA{124, 0, 2, 255}
 	FlaggedColor        = color.RGBA{247, 247, 244, 255}
 )
 
 func recognizeColor(img image.Image, x, y int, width, hight int) cell.CellState {
-	if hasColor(img, x, y, 7, Number1FeatureColor) {
+	rang := width / 6
+	if hasColor(img, x, y, rang/2, Number1FeatureColor) {
 		return cell.Number1
-	} else if hasColorWithinRange(img, x, y, 7, Number2FeatureColor, 5) {
+	} else if hasColorWithinRange(img, x, y, rang, Number2FeatureColor, 5) {
 		return cell.Number2
-	} else if hasColorWithinRange(img, x, y, 7, Number3FeatureColor, 5) {
+	} else if hasColorWithinRange(img, x, y, rang, Number3Color, 3) {
 		return cell.Number3
-	} else if hasColorWithinRange(img, x, y, 7, Number4Color, 5) {
+	} else if hasColorWithinRange(img, x, y, rang, Number4Color, 5) {
 		return cell.Number4
-	} else if hasColorWithinRange(img, x, y, 7, Number5Color, 5) {
+	} else if hasColorWithinRange(img, x, y, rang, Number5Color, 5) {
 		return cell.Number5
 	} else if hasColorWithinRange(img, x, y, 17, FlaggedColor, 25) {
 		return cell.Flagged
-	} else if diffColor(img, x, y, x, y+hight*2/6) < 30*256 {
+	} else if r,_,_,_:=img.At(img.Bounds().Min.X+x,img.Bounds().Min.Y+y).RGBA();r>170*256 {
 		return cell.Empty
 	}
 
@@ -158,4 +161,16 @@ func hasColorWithinRange(img image.Image, x, y int, rang int, targetColor color.
 
 func diffColor(img image.Image, x, y int, x2, y2 int) int {
 	return colorutil.ColorsDist(img.At(img.Bounds().Min.X+x, img.Bounds().Min.Y+y), img.At(img.Bounds().Min.X+x2, img.Bounds().Min.Y+y2))
+}
+
+func maxDiffInRange(img image.Image, x, y int, rang int) int {
+	max := 0
+	for i := -rang; i <= rang; i++ {
+		for j := -rang; j <= rang; j++ {
+			if diff := colorutil.ColorsDist(img.At(img.Bounds().Min.X+x+i, img.Bounds().Min.Y+y+j), img.At(img.Bounds().Min.X+x, img.Bounds().Min.Y+y)); diff > max {
+				max = diff
+			}
+		}
+	}
+	return max
 }

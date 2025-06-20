@@ -2,6 +2,7 @@
 package solver
 
 import (
+	"fmt"
 	"image"
 	"minego/internal/cell"
 )
@@ -26,7 +27,7 @@ func (s *solver) Solve() ([]image.Point, []image.Point) {
 	}
 	cols := len(s.grid[0])
 
-	// 遍历所有单元格
+	// 遍历所有单元格(简单处理)
 	for i := range rows {
 		for j := range cols {
 			ccell := s.grid[i][j]
@@ -49,6 +50,7 @@ func (s *solver) Solve() ([]image.Point, []image.Point) {
 								X: nb.Position.X,
 								Y: nb.Position.Y,
 							})
+							nb.State = cell.Flagged
 						}
 					}
 				}
@@ -65,8 +67,18 @@ func (s *solver) Solve() ([]image.Point, []image.Point) {
 				if flaggedCount == int(ccell.State) {
 					for _, nb := range neighbors {
 						// 找到未打开的安全单元格
-						if nb.State == cell.Unknown&&!contains(safePoints, nb.Position) {
+						if nb.State == cell.Unknown && !contains(safePoints, nb.Position) {
 							safePoints = append(safePoints, image.Point{
+								X: nb.Position.X,
+								Y: nb.Position.Y,
+							})
+						}
+					}
+				} else if flaggedCount > int(ccell.State) {
+					for _, nb := range neighbors {
+						// 找到被标记的单元格
+						if nb.State == cell.Flagged && !contains(minePoints, nb.Position) {
+							minePoints = append(minePoints, image.Point{
 								X: nb.Position.X,
 								Y: nb.Position.Y,
 							})
@@ -76,8 +88,120 @@ func (s *solver) Solve() ([]image.Point, []image.Point) {
 			}
 		}
 	}
+	pointID := NewPointIDMap()
+	equations := make([]Equation, 0)
+	n := 0
+	for i := range rows {
+		for j := range cols {
+			ccell := s.grid[i][j]
+			if ccell.State >= cell.Number1 && ccell.State <= cell.Number8 {
+				neighbors := s.getNeighbors(i, j)
+				unknowncells := make([]int, 0)
+				for _, nb := range neighbors {
+					if nb.State == cell.Unknown || nb.State == cell.Flagged {
+						id, ok := pointID.GetID(nb.Position)
+						if ok {
+							unknowncells = append(unknowncells, id)
+						} else {
+							pointID.Add(nb.Position, n)
+							unknowncells = append(unknowncells, n)
+							n++
+							if n >= 18 {
+								goto end
+							}
+						}
+					}
+				}
+				equations = append(equations, Equation{unknowncells, int(ccell.State)})
+				fmt.Println(unknowncells, int(ccell.State))
+			}
+		}
+	}
+end:
+	res := make([][]int, 0)
+	if len(equations) > 10 {
+		res = solveBinaryEquations(n, equations[:10])
+	} else {
+		res = solveBinaryEquations(n, equations)
+	}
+
+	fmt.Println("res", res)
+	samep := comparePositions(res)
+	fmt.Println("samp", samep)
+	for id, p := range samep {
+		switch p {
+		case 0:
+			if !contains(safePoints, pointID.idToPoint[id]) {
+				safePoints = append(safePoints, pointID.idToPoint[id])
+			}
+		case 1:
+			if !contains(minePoints, pointID.idToPoint[id])&&s.grid[pointID.idToPoint[id].Y][pointID.idToPoint[id].X].State != cell.Flagged {
+				minePoints = append(minePoints, pointID.idToPoint[id])
+			}
+		}
+	}
 
 	return safePoints, minePoints
+}
+
+type PointIDMap struct {
+	pointToID map[image.Point]int
+	idToPoint map[int]image.Point
+}
+
+func NewPointIDMap() *PointIDMap {
+	return &PointIDMap{
+		pointToID: make(map[image.Point]int),
+		idToPoint: make(map[int]image.Point),
+	}
+}
+
+func (m *PointIDMap) Add(p image.Point, id int) {
+	m.pointToID[p] = id
+	m.idToPoint[id] = p
+}
+
+func (m *PointIDMap) GetID(p image.Point) (int, bool) {
+	id, ok := m.pointToID[p]
+	return id, ok
+}
+
+func (m *PointIDMap) GetPoint(id int) (image.Point, bool) {
+	point, ok := m.idToPoint[id]
+	return point, ok
+}
+
+func comparePositions(arr [][]int) []int {
+	if len(arr) == 0 || len(arr[0]) == 0 {
+		return []int{}
+	}
+
+	rows := len(arr)
+	if rows == 1 {
+		return arr[0]
+	}
+	cols := len(arr[0])
+	result := make([]int, cols)
+
+	for col := range cols {
+		val := arr[0][col]
+		same := true
+
+		for row := 1; row < rows; row++ {
+			if arr[row][col] != val {
+				same = false
+				break
+			}
+		}
+
+		if same {
+			result[col] = val
+		} else {
+			result[col] = -1
+		}
+	}
+
+	return result
 }
 
 func contains(points []image.Point, p image.Point) bool {

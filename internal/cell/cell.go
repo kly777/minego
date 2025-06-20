@@ -1,6 +1,9 @@
 package cell
 
-import "image"
+import (
+	"image"
+	"image/color"
+)
 
 type CellState int
 
@@ -30,6 +33,7 @@ type GridCell struct {
 	X, Y         int // 坐标位置
 	Width, Hight int
 	Position image.Point
+	Color color.Color
 }
 
 func NewMineField(bounds image.Rectangle, cells [][]GridCell) *MineField {

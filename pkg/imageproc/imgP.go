@@ -3,8 +3,8 @@ package imageproc
 import (
 	"bufio"
 	"encoding/binary"
-	"log"
 	"image"
+	"log"
 
 	_ "image/jpeg"
 	_ "image/png"
@@ -49,9 +49,9 @@ func DetectMineSweeperGrid(img image.Image) ([]int, []int) {
 	sort.Ints(verticalLines)
 
 	// 聚类和去重（合并相近的线）
-	horizontalLines = clusterPoints(horizontalLines, 5)
-	verticalLines = clusterPoints(verticalLines, 5)
-
+	horizontalLines = clusterPoints(horizontalLines, 10)
+	verticalLines = clusterPoints(verticalLines, 10)
+	log.Println("检测到水平线:", len(horizontalLines), "列线:", len(verticalLines))
 	return horizontalLines, verticalLines
 }
 
