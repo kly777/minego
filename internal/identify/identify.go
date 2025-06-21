@@ -44,7 +44,7 @@ func IdentifyMinesweeper(imgpos *imgpos.ImageWithOffset) [][]cell.GridCell {
 					X: j,
 					Y: i,
 				},
-				Color:imgpos.Image.At(imgpos.Image.Bounds().Min.X+x, imgpos.Image.Bounds().Min.Y+y),
+				Color: imgpos.Image.At(imgpos.Image.Bounds().Min.X+x, imgpos.Image.Bounds().Min.Y+y),
 			}
 		}
 	}
@@ -60,6 +60,7 @@ var (
 	Number3Color        = color.RGBA{175, 5, 8, 255}
 	Number4Color        = color.RGBA{3, 1, 130, 255}
 	Number5Color        = color.RGBA{124, 0, 2, 255}
+	Number6Color        = color.RGBA{12, 119, 116, 255}
 	FlaggedColor        = color.RGBA{247, 247, 244, 255}
 )
 
@@ -75,9 +76,11 @@ func recognizeColor(img image.Image, x, y int, width, hight int) cell.CellState 
 		return cell.Number4
 	} else if hasColorWithinRange(img, x, y, rang, Number5Color, 5) {
 		return cell.Number5
+	} else if hasColorWithinRange(img, x, y, rang, Number6Color, 5) {
+		return cell.Number6
 	} else if hasColorWithinRange(img, x, y, 17, FlaggedColor, 25) {
 		return cell.Flagged
-	} else if r,_,_,_:=img.At(img.Bounds().Min.X+x,img.Bounds().Min.Y+y).RGBA();r>170*256 {
+	} else if r, _, _, _ := img.At(img.Bounds().Min.X+x, img.Bounds().Min.Y+y).RGBA(); r > 170*256 {
 		return cell.Empty
 	}
 

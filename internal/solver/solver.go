@@ -2,7 +2,6 @@
 package solver
 
 import (
-	"fmt"
 	"image"
 	"minego/internal/cell"
 )
@@ -20,6 +19,21 @@ func NewSolver(grid [][]cell.GridCell) *solver {
 func (s *solver) Solve() ([]image.Point, []image.Point) {
 	var safePoints []image.Point
 	var minePoints []image.Point
+	safeSet := make(map[image.Point]struct{})
+	mineSet := make(map[image.Point]struct{})
+
+	addSafe := func(p image.Point) {
+		if _, exists := safeSet[p]; !exists {
+			safePoints = append(safePoints, p)
+			safeSet[p] = struct{}{}
+		}
+	}
+	addMine := func(p image.Point) {
+		if _, exists := mineSet[p]; !exists {
+			minePoints = append(minePoints, p)
+			mineSet[p] = struct{}{}
+		}
+	}
 
 	rows := len(s.grid)
 	if rows == 0 {
@@ -27,121 +41,139 @@ func (s *solver) Solve() ([]image.Point, []image.Point) {
 	}
 	cols := len(s.grid[0])
 
-	// 遍历所有单元格(简单处理)
+	// 遍历所有单元格
 	for i := range rows {
 		for j := range cols {
 			ccell := s.grid[i][j]
+			if ccell.State < cell.Number1 || ccell.State > cell.Number8 {
+				continue // 只处理数字单元格
+			}
 
-			// 只处理已打开的数字单元格(1-8)
-			if ccell.State >= cell.Number1 && ccell.State <= cell.Number8 {
-				// 获取周围单元格
-				neighbors := s.getNeighbors(i, j)
+			neighbors := s.getNeighborPointers(i, j) // 返回指向网格单元格的指针切片
+			unknownCount := 0
+			flaggedCount := 0
 
-				unknownCount := 0
-				for _, neighbor := range neighbors {
-					if neighbor.State == cell.Unknown || neighbor.State == cell.Flagged {
-						unknownCount++
-					}
-				}
-				if unknownCount == int(ccell.State) {
-					for _, nb := range neighbors {
-						if nb.State == cell.Unknown && !contains(minePoints, nb.Position) {
-							minePoints = append(minePoints, image.Point{
-								X: nb.Position.X,
-								Y: nb.Position.Y,
-							})
-							nb.State = cell.Flagged
-						}
-					}
-				}
-
-				// 统计周围标记的地雷数量
-				flaggedCount := 0
-				for _, nb := range neighbors {
+			// 单次遍历统计未知和标记数量
+			for _, nb := range neighbors {
+				switch nb.State {
+				case cell.Unknown, cell.Flagged:
+					unknownCount++
 					if nb.State == cell.Flagged {
 						flaggedCount++
 					}
 				}
+			}
 
-				// 如果标记数等于当前单元格数字
-				if flaggedCount == int(ccell.State) {
-					for _, nb := range neighbors {
-						// 找到未打开的安全单元格
-						if nb.State == cell.Unknown && !contains(safePoints, nb.Position) {
-							safePoints = append(safePoints, image.Point{
-								X: nb.Position.X,
-								Y: nb.Position.Y,
-							})
-						}
-					}
-				} else if flaggedCount > int(ccell.State) {
-					for _, nb := range neighbors {
-						// 找到被标记的单元格
-						if nb.State == cell.Flagged && !contains(minePoints, nb.Position) {
-							minePoints = append(minePoints, image.Point{
-								X: nb.Position.X,
-								Y: nb.Position.Y,
-							})
-						}
+			// 标记所有未知为地雷
+			if unknownCount == int(ccell.State) {
+				for _, nb := range neighbors {
+					if nb.State == cell.Unknown {
+						nb.State = cell.Flagged // 同步到原始网格
+						addMine(nb.Position)
 					}
 				}
+				continue
 			}
+
+			// 标记所有未知为安全
+			if flaggedCount == int(ccell.State) {
+				for _, nb := range neighbors {
+					if nb.State == cell.Unknown {
+						addSafe(nb.Position)
+					}
+				}
+			} else if flaggedCount > int(ccell.State) {
+				for _, nb := range neighbors {
+					if nb.State == cell.Flagged {
+						addMine(nb.Position)
+					}
+				}
+			 }
 		}
 	}
+
+	// 构建方程组
 	pointID := NewPointIDMap()
 	equations := make([]Equation, 0)
 	n := 0
+Loop:
 	for i := range rows {
 		for j := range cols {
+			flaggedCount := 0
 			ccell := s.grid[i][j]
-			if ccell.State >= cell.Number1 && ccell.State <= cell.Number8 {
-				neighbors := s.getNeighbors(i, j)
-				unknowncells := make([]int, 0)
-				for _, nb := range neighbors {
-					if nb.State == cell.Unknown || nb.State == cell.Flagged {
-						id, ok := pointID.GetID(nb.Position)
-						if ok {
-							unknowncells = append(unknowncells, id)
-						} else {
-							pointID.Add(nb.Position, n)
-							unknowncells = append(unknowncells, n)
-							n++
-							if n >= 18 {
-								goto end
-							}
+			if ccell.State < cell.Number1 || ccell.State > cell.Number8 {
+				continue
+			}
+			neighbors := s.getNeighbors(i, j)
+			s:=0
+			for _, nb := range neighbors {
+				if nb.State == cell.Flagged|| nb.State == cell.Empty {
+					s+=1
+				}
+			}
+			if s==len(neighbors){
+				continue
+			}
+			unknowncells := make([]int, 0)
+			for _, nb := range neighbors {
+				if nb.State == cell.Flagged {
+					flaggedCount += 1
+				}
+				if nb.State == cell.Unknown {
+					id, ok := pointID.GetID(nb.Position)
+					if !ok {
+						pointID.Add(nb.Position, n)
+						unknowncells = append(unknowncells, n)
+						n++
+						if n >= 21 {
+							break Loop // 替代goto
 						}
+					} else {
+						unknowncells = append(unknowncells, id)
 					}
 				}
-				equations = append(equations, Equation{unknowncells, int(ccell.State)})
-				fmt.Println(unknowncells, int(ccell.State))
+			}
+			if len(unknowncells) > 0 {
+				equations = append(equations, Equation{unknowncells, int(ccell.State) - flaggedCount})
 			}
 		}
 	}
-end:
-	res := make([][]int, 0)
-	if len(equations) > 10 {
-		res = solveBinaryEquations(n, equations[:10])
-	} else {
-		res = solveBinaryEquations(n, equations)
-	}
 
-	fmt.Println("res", res)
+	// 求解方程组
+	res := make([][]int, 0)
+	res = solveBinaryEquations(n, equations)
+	// fmt.Println("res", res)
+	// 处理结果
 	samep := comparePositions(res)
-	fmt.Println("samp", samep)
+	if usefulEle(samep) == 0 && len(safePoints) == 0 && len(minePoints) == 0 {
+		if len(res) >= 1 && len(res[0]) >= 1 {
+			samep = []int{res[0][0]}
+		}
+
+	}
 	for id, p := range samep {
+		point := pointID.idToPoint[id]
 		switch p {
 		case 0:
-			if !contains(safePoints, pointID.idToPoint[id]) {
-				safePoints = append(safePoints, pointID.idToPoint[id])
-			}
+			addSafe(point)
 		case 1:
-			if !contains(minePoints, pointID.idToPoint[id])&&s.grid[pointID.idToPoint[id].Y][pointID.idToPoint[id].X].State != cell.Flagged {
-				minePoints = append(minePoints, pointID.idToPoint[id])
+			if s.grid[point.Y][point.X].State != cell.Flagged {
+				addMine(point)
 			}
 		}
 	}
 
 	return safePoints, minePoints
+}
+
+func usefulEle(arr []int) int {
+	count := 0
+	for _, v := range arr {
+		if v != -1 {
+			count++
+		}
+	}
+	return count
 }
 
 type PointIDMap struct {
@@ -228,6 +260,30 @@ func (s *solver) getNeighbors(row, col int) []cell.GridCell {
 			r, c := row+i, col+j
 			if r >= 0 && r < rows && c >= 0 && c < cols {
 				neighbors = append(neighbors, s.grid[r][c])
+			}
+		}
+	}
+	return neighbors
+}
+
+// getNeighborPointers 获取周围8个方向单元格的指针切片
+func (s *solver) getNeighborPointers(row, col int) []*cell.GridCell {
+	var neighbors []*cell.GridCell
+	rows := len(s.grid)
+	if rows == 0 {
+		return neighbors
+	}
+	cols := len(s.grid[0])
+
+	for i := -1; i <= 1; i++ {
+		for j := -1; j <= 1; j++ {
+			if i == 0 && j == 0 {
+				continue // 跳过自身
+			}
+
+			r, c := row+i, col+j
+			if r >= 0 && r < rows && c >= 0 && c < cols {
+				neighbors = append(neighbors, &s.grid[r][c]) // 取地址
 			}
 		}
 	}
