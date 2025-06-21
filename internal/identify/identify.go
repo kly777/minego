@@ -17,7 +17,7 @@ type identifier struct {
 	imgpos *imgpos.ImageWithOffset
 }
 
-func IdentifyMinesweeper(imgpos *imgpos.ImageWithOffset,horizontalLines, verticalLines []int) [][]cell.GridCell {
+func IdentifyMinesweeper(imgpos *imgpos.ImageWithOffset, horizontalLines, verticalLines []int) [][]cell.GridCell {
 
 	rows := len(horizontalLines) - 1
 	cols := len(verticalLines) - 1

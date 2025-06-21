@@ -8,7 +8,6 @@ func findMineWindow() (winapi.HWND, error) {
 	return winapi.FindWindow(className, windowName)
 }
 
-
 func GetMineSweeperWindow() winapi.Window {
 	hwnd, _ := findMineWindow()
 	return winapi.NewWindow(hwnd)

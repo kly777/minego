@@ -15,4 +15,3 @@ package controller
 // func NewMouseController() MouseController {
 // 	return mouseController{}
 // }
-

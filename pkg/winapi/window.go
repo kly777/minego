@@ -36,11 +36,10 @@ func FindWindow(className, windowName string) (HWND, error) {
 	return hwnd, nil
 }
 
-
 func FindMineWindow() (HWND, error) {
 	className := "Minesweeper"
 	windowName := "扫雷"
-	return FindWindow(className,windowName)
+	return FindWindow(className, windowName)
 }
 
 func activateWindow(hwnd uintptr) error {

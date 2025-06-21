@@ -9,13 +9,13 @@ import (
 
 // 定义Windows API常量
 const (
-	INPUT_MOUSE          = 0
-	MOUSEEVENTF_MOVE     = 0x0001
-	MOUSEEVENTF_LEFTDOWN = 0x0002
-	MOUSEEVENTF_LEFTUP   = 0x0004
+	INPUT_MOUSE           = 0
+	MOUSEEVENTF_MOVE      = 0x0001
+	MOUSEEVENTF_LEFTDOWN  = 0x0002
+	MOUSEEVENTF_LEFTUP    = 0x0004
 	MOUSEEVENTF_RIGHTDOWN = 0x0008
 	MOUSEEVENTF_RIGHTUP   = 0x0010
-	MOUSEEVENTF_ABSOLUTE = 0x8000
+	MOUSEEVENTF_ABSOLUTE  = 0x8000
 
 	SM_CXSCREEN                   = 0 // 主显示器宽度
 	SM_CYSCREEN                   = 1 // 主显示器高度
@@ -74,7 +74,7 @@ func Click(p image.Point) {
 	PhysicalMouseClick(int32(p.X), int32(p.Y))
 }
 
-func RightClick(p image.Point){
+func RightClick(p image.Point) {
 	PhysicalRightMouseClick(int32(p.X), int32(p.Y))
 }
 

@@ -17,7 +17,6 @@ func NewWindow(hwnd HWND) Window {
 	return &window{hwnd: hwnd}
 }
 
-
 func (w window) Activate() {
 	activateWindow(w.hwnd)
 }

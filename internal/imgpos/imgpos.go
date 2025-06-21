@@ -4,8 +4,8 @@ import "image"
 
 // ImageWithOffset 表示带有偏移量的图像
 type ImageWithOffset struct {
-	Image  image.Image   // 图像对象
-	Offset image.Point   // 图像在父坐标系中的偏移量
+	Image  image.Image // 图像对象
+	Offset image.Point // 图像在父坐标系中的偏移量
 }
 
 // RectWithOffset 表示带有偏移量的矩形区域

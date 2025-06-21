@@ -88,7 +88,7 @@ func (s *solver) Solve() ([]image.Point, []image.Point) {
 						addMine(nb.Position)
 					}
 				}
-			 }
+			}
 		}
 	}
 
@@ -105,13 +105,13 @@ Loop:
 				continue
 			}
 			neighbors := s.getNeighbors(i, j)
-			s:=0
+			s := 0
 			for _, nb := range neighbors {
-				if nb.State == cell.Flagged|| nb.State == cell.Empty {
-					s+=1
+				if nb.State == cell.Flagged || nb.State == cell.Empty {
+					s += 1
 				}
 			}
-			if s==len(neighbors){
+			if s == len(neighbors) {
 				continue
 			}
 			unknowncells := make([]int, 0)

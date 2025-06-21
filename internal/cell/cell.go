@@ -22,9 +22,10 @@ const (
 	Number7
 	Number8
 )
+
 type MineField struct {
-	Bounds    image.Rectangle
-	Grid      [][]GridCell
+	Bounds image.Rectangle
+	Grid   [][]GridCell
 }
 
 type GridCell struct {
@@ -32,8 +33,8 @@ type GridCell struct {
 	State        CellState
 	X, Y         int // 坐标位置
 	Width, Hight int
-	Position image.Point
-	Color color.Color
+	Position     image.Point
+	Color        color.Color
 }
 
 func NewMineField(bounds image.Rectangle, cells [][]GridCell) *MineField {
@@ -51,5 +52,3 @@ func (gc *GridCell) ScreenPos() image.Point {
 		Y: screenY,
 	}
 }
-
-

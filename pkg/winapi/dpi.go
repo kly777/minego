@@ -1,9 +1,9 @@
 package winapi
 
 import (
-
 	"syscall"
 )
+
 func SetDPIAware() {
 	user32 := syscall.NewLazyDLL("user32.dll")
 	procSetProcessDPIAware := user32.NewProc("SetProcessDPIAware")
@@ -28,9 +28,8 @@ func GetDPI(hwnd uintptr) (int, error) {
 func LogicalToPhysical(hwnd uintptr, x, y int) (int, int) {
 	// dpi, _ := GetDPI(hwnd)
 	// if dpi == 96 {
-		return x, y
+	return x, y
 	// }
 	// scale := float64(dpi) / 96.0
 	// return int(float64(x) * scale), int(float64(y) * scale)
 }
-
