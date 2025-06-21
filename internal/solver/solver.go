@@ -8,11 +8,11 @@ import (
 
 // solver 扫雷求解器
 type solver struct {
-	grid [][]cell.GridCell
+	field [][]cell.GridCell
 }
 
-func NewSolver(grid [][]cell.GridCell) *solver {
-	return &solver{grid: grid}
+func NewSolver(field [][]cell.GridCell) *solver {
+	return &solver{field: field}
 }
 
 // Solve 实现扫雷求解逻辑
@@ -35,37 +35,37 @@ func (s *solver) Solve() ([]image.Point, []image.Point) {
 		}
 	}
 
-	rows := len(s.grid)
+	rows := len(s.field)
 	if rows == 0 {
 		return safePoints, minePoints
 	}
-	cols := len(s.grid[0])
+	cols := len(s.field[0])
 
 	// 遍历所有单元格
 	for i := range rows {
 		for j := range cols {
-			ccell := s.grid[i][j]
-			if ccell.State < cell.Number1 || ccell.State > cell.Number8 {
+			currentCell := s.field[i][j]
+			if currentCell.State < cell.Number1 || currentCell.State > cell.Number8 {
 				continue // 只处理数字单元格
 			}
 
-			neighbors := s.getNeighborPointers(i, j) // 返回指向网格单元格的指针切片
+			neighbors := s.neighborPointers(i, j) // 返回指向网格单元格的指针切片
 			unknownCount := 0
 			flaggedCount := 0
 
 			// 单次遍历统计未知和标记数量
-			for _, nb := range neighbors {
-				switch nb.State {
+			for _, neighborCell := range neighbors {
+				switch neighborCell.State {
 				case cell.Unknown, cell.Flagged:
 					unknownCount++
-					if nb.State == cell.Flagged {
+					if neighborCell.State == cell.Flagged {
 						flaggedCount++
 					}
 				}
 			}
 
 			// 标记所有未知为地雷
-			if unknownCount == int(ccell.State) {
+			if unknownCount == int(currentCell.State) {
 				for _, nb := range neighbors {
 					if nb.State == cell.Unknown {
 						nb.State = cell.Flagged // 同步到原始网格
@@ -76,13 +76,13 @@ func (s *solver) Solve() ([]image.Point, []image.Point) {
 			}
 
 			// 标记所有未知为安全
-			if flaggedCount == int(ccell.State) {
-				for _, nb := range neighbors {
-					if nb.State == cell.Unknown {
-						addSafe(nb.Position)
+			if flaggedCount == int(currentCell.State) {
+				for _, neighborCell := range neighbors {
+					if neighborCell.State == cell.Unknown {
+						addSafe(neighborCell.Position)
 					}
 				}
-			} else if flaggedCount > int(ccell.State) {
+			} else if flaggedCount > int(currentCell.State) {
 				for _, nb := range neighbors {
 					if nb.State == cell.Flagged {
 						addMine(nb.Position)
@@ -100,7 +100,7 @@ Loop:
 	for i := range rows {
 		for j := range cols {
 			flaggedCount := 0
-			ccell := s.grid[i][j]
+			ccell := s.field[i][j]
 			if ccell.State < cell.Number1 || ccell.State > cell.Number8 {
 				continue
 			}
@@ -140,8 +140,8 @@ Loop:
 	}
 
 	// 求解方程组
-	res := make([][]int, 0)
-	res = solveBinaryEquations(n, equations)
+
+	res := solveBinaryEquations(n, equations)
 	// fmt.Println("res", res)
 	// 处理结果
 	samep := comparePositions(res)
@@ -157,7 +157,7 @@ Loop:
 		case 0:
 			addSafe(point)
 		case 1:
-			if s.grid[point.Y][point.X].State != cell.Flagged {
+			if s.field[point.Y][point.X].State != cell.Flagged {
 				addMine(point)
 			}
 		}
@@ -248,8 +248,8 @@ func contains(points []image.Point, p image.Point) bool {
 // getNeighbors 获取周围8个方向的单元格
 func (s *solver) getNeighbors(row, col int) []cell.GridCell {
 	var neighbors []cell.GridCell
-	rows := len(s.grid)
-	cols := len(s.grid[0])
+	rows := len(s.field)
+	cols := len(s.field[0])
 
 	for i := -1; i <= 1; i++ {
 		for j := -1; j <= 1; j++ {
@@ -259,21 +259,21 @@ func (s *solver) getNeighbors(row, col int) []cell.GridCell {
 
 			r, c := row+i, col+j
 			if r >= 0 && r < rows && c >= 0 && c < cols {
-				neighbors = append(neighbors, s.grid[r][c])
+				neighbors = append(neighbors, s.field[r][c])
 			}
 		}
 	}
 	return neighbors
 }
 
-// getNeighborPointers 获取周围8个方向单元格的指针切片
-func (s *solver) getNeighborPointers(row, col int) []*cell.GridCell {
+// neighborPointers 获取周围8个方向单元格的指针切片
+func (s *solver) neighborPointers(row, col int) []*cell.GridCell {
 	var neighbors []*cell.GridCell
-	rows := len(s.grid)
+	rows := len(s.field)
 	if rows == 0 {
 		return neighbors
 	}
-	cols := len(s.grid[0])
+	cols := len(s.field[0])
 
 	for i := -1; i <= 1; i++ {
 		for j := -1; j <= 1; j++ {
@@ -283,7 +283,7 @@ func (s *solver) getNeighborPointers(row, col int) []*cell.GridCell {
 
 			r, c := row+i, col+j
 			if r >= 0 && r < rows && c >= 0 && c < cols {
-				neighbors = append(neighbors, &s.grid[r][c]) // 取地址
+				neighbors = append(neighbors, &s.field[r][c]) // 取地址
 			}
 		}
 	}
