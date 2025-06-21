@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"image"
 
 	"log"
 
@@ -12,8 +13,8 @@ import (
 	"minego/internal/imgpos"
 	"minego/internal/solver"
 	"minego/internal/window"
-	"minego/pkg/clip"
 
+	"minego/pkg/imageproc"
 	"minego/pkg/kit"
 	"minego/pkg/winapi/click"
 
@@ -31,9 +32,7 @@ const (
 	gridBorderExpand  = 3  // 雷区边界扩展像素
 )
 
-func main() {
-	click.SetDPIAware()
-
+func getMineFieldBounds() (image.Rectangle, error) {
 	mineSweeperWindow := window.GetMineSweeperWindow()
 	mineSweeperWindow.Activate()
 
@@ -49,53 +48,58 @@ func main() {
 	windowBounds.Min.Y += windowBorderInset
 	windowBounds.Max.X -= windowBorderInset
 	windowBounds.Max.Y -= windowBorderInset
+	windowImg, err := screenshot.CaptureRect(windowBounds)
+	mineField := kit.FindSurroundingRect(windowImg, BorderColor)
+	mineFieldBounds := image.Rect(
+		windowBounds.Min.X+mineField.Min.X,
+		windowBounds.Min.Y+mineField.Min.Y,
+		windowBounds.Min.X+mineField.Dx()+mineField.Min.X,
+		windowBounds.Min.Y+mineField.Dy()+mineField.Min.Y)
 
+	fmt.Println("雷区边界:", mineFieldBounds)
+	mineFieldBounds.Min.X = min(mineFieldBounds.Min.X-gridBorderExpand, mineFieldBounds.Min.X)
+	mineFieldBounds.Min.Y = min(mineFieldBounds.Min.Y-gridBorderExpand, mineFieldBounds.Min.Y)
+	mineFieldBounds.Max.X = max(mineFieldBounds.Max.X+gridBorderExpand, mineFieldBounds.Max.X)
+	mineFieldBounds.Max.Y = max(mineFieldBounds.Max.Y+gridBorderExpand, mineFieldBounds.Max.Y)
+	fmt.Println("最终雷区边界:", mineFieldBounds)
+	return mineFieldBounds, nil
+}
+
+func main() {
+	click.SetDPIAware()
+
+	mineFieldBounds, err := getMineFieldBounds()
+	if err != nil {
+		log.Fatalf("获取窗口边界失败: %v", err)
+	}
+	mineFieldImg, err := screenshot.CaptureRect(mineFieldBounds)
+	horizontalLines, verticalLines := imageproc.DetectMineSweeperGrid(mineFieldImg)
 	for i := range 30 {
-		// time.Sleep(2*time.Second)
+
 		log.Printf("=== 第 %d 轮迭代 ===", i+1)
 
 		// 1. 截图阶段
 		var total time.Duration
 		start := time.Now()
-		windowImg, err := screenshot.CaptureRect(windowBounds)
+		mineFieldImg, err := screenshot.CaptureRect(mineFieldBounds)
 		if err != nil {
 			panic(err)
 		}
+		mineFieldImgPos := imgpos.NewImageWithOffset(mineFieldImg, mineFieldBounds.Min)
 		elapsed := time.Since(start)
 		log.Printf("📸 截图耗时: %d ms", elapsed.Milliseconds())
 		total += elapsed
 
-		// 2. 雷区定位阶段
-		start = time.Now()
-		mineField := kit.FindSurroundingRect(windowImg, BorderColor)
-		mineFieldPos := imgpos.NewRectWithOffset(mineField, windowBounds.Min)
-		// 边界调整
-		mineField.Min.X = max(mineField.Min.X-gridBorderExpand, 0)
-		mineField.Min.Y = max(mineField.Min.Y-gridBorderExpand, 0)
-		mineField.Max.X = min(mineField.Max.X+gridBorderExpand, windowImg.Bounds().Dx())
-		mineField.Max.Y = min(mineField.Max.Y+gridBorderExpand, windowImg.Bounds().Dy())
-		elapsed = time.Since(start)
-		log.Printf("📍 定位耗时: %d ms", elapsed.Milliseconds())
-		total += elapsed
-
-		// 3. 图像裁剪阶段
-		start = time.Now()
-		mineFieldImg, err := clip.ClipImage(windowImg, mineField)
-		mineFieldImgPos := imgpos.NewImageWithOffset(mineFieldImg, mineFieldPos.AbsolutePosition())
-		elapsed = time.Since(start)
-		log.Printf("✂️ 裁剪耗时: %d ms", elapsed.Milliseconds())
-		total += elapsed
-
 		// 4. 图像保存阶段
-		// start = time.Now()
-		// go kit.SaveImg(mineFieldImg, "clip.png")
-		// elapsed = time.Since(start)
-		// log.Printf("💾 保存耗时: %d ms", elapsed.Milliseconds())
-		// total += elapsed
+		start = time.Now()
+		go kit.SaveImg(mineFieldImg, "mineField.png")
+		elapsed = time.Since(start)
+		log.Printf("💾 保存耗时: %d ms", elapsed.Milliseconds())
+		total += elapsed
 
 		// 5. 雷区识别阶段
 		start = time.Now()
-		cells := identify.IdentifyMinesweeper(mineFieldImgPos)
+		cells := identify.IdentifyMinesweeper(mineFieldImgPos, horizontalLines, verticalLines)
 		fmt.Println(len(cells), "x", len(cells[0]))
 		elapsed = time.Since(start)
 		log.Printf("🧠 识别耗时: %d ms", elapsed.Milliseconds())
@@ -114,7 +118,7 @@ func main() {
 		fmt.Println("🚩 雷点:", minePoints)
 
 		// 8. 点击操作阶段
-		if len(safePoints) == 0 && len(minePoints) == 0 && i >= 3 {
+		if len(safePoints) == 0 && len(minePoints) == 0 && i >= 6 {
 			log.Printf("🛑 未检测到新操作，退出循环")
 			break
 		}
