@@ -17,6 +17,7 @@ import (
 	"minego/pkg/imageproc"
 	"minego/pkg/kit"
 	"minego/pkg/winapi/click"
+	keylistener "minego/pkg/winapi/keyboard"
 
 	"minego/pkg/screenshot"
 )
@@ -49,6 +50,9 @@ func getMineFieldBounds() (image.Rectangle, error) {
 	windowBounds.Max.X -= windowBorderInset
 	windowBounds.Max.Y -= windowBorderInset
 	windowImg, err := screenshot.CaptureRect(windowBounds)
+	if err != nil {
+		log.Fatalf("截图失败: %v", err)
+	}
 	mineField := kit.FindSurroundingRect(windowImg, BorderColor)
 	mineFieldBounds := image.Rect(
 		windowBounds.Min.X+mineField.Min.X,
@@ -57,22 +61,31 @@ func getMineFieldBounds() (image.Rectangle, error) {
 		windowBounds.Min.Y+mineField.Dy()+mineField.Min.Y)
 
 	fmt.Println("雷区边界:", mineFieldBounds)
-	mineFieldBounds.Min.X = min(mineFieldBounds.Min.X-gridBorderExpand, mineFieldBounds.Min.X)
-	mineFieldBounds.Min.Y = min(mineFieldBounds.Min.Y-gridBorderExpand, mineFieldBounds.Min.Y)
-	mineFieldBounds.Max.X = max(mineFieldBounds.Max.X+gridBorderExpand, mineFieldBounds.Max.X)
-	mineFieldBounds.Max.Y = max(mineFieldBounds.Max.Y+gridBorderExpand, mineFieldBounds.Max.Y)
+	mineFieldBounds.Min.X -= gridBorderExpand
+	mineFieldBounds.Min.Y -= gridBorderExpand
+	mineFieldBounds.Max.X += gridBorderExpand
+	mineFieldBounds.Max.Y += gridBorderExpand
 	fmt.Println("最终雷区边界:", mineFieldBounds)
 	return mineFieldBounds, nil
 }
 
 func main() {
 	click.SetDPIAware()
+	go func() {
+		err := keylistener.Listen()
+		if err != nil {
+			log.Fatalf("设置键盘钩子失败: %v", err)
+		}
+	}()
 
 	mineFieldBounds, err := getMineFieldBounds()
 	if err != nil {
 		log.Fatalf("获取窗口边界失败: %v", err)
 	}
 	mineFieldImg, err := screenshot.CaptureRect(mineFieldBounds)
+	if err != nil {
+		log.Fatalf("截图失败: %v", err)
+	}
 	horizontalLines, verticalLines := imageproc.DetectMineSweeperGrid(mineFieldImg)
 	for i := range 30 {
 
